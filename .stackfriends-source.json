@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "b3af7825d4bc83833817d1f11a3618f384fb3c4c",
+  "sourceCommit": "3b4c5fb0c0abe8416eed080184c2adfa81e77492",
   "application": "frontend",
   "repository": "https://github.com/Tom-Gries/MuStack",
   "files": [
@@ -39,6 +39,7 @@
     "src/components/SettingsPage.jsx",
     "src/lib/catalog-export.js",
     "src/lib/catalog-graph.js",
+    "src/lib/world-sync.js",
     "src/main.jsx",
     "src/settings.css",
     "src/styles.css",
@@ -54,6 +55,7 @@
     "shared/package.json",
     "tests/catalog-graph.test.js",
     "tests/frontend-proxy.test.js",
-    "tests/interaction.test.js"
+    "tests/interaction.test.js",
+    "tests/world-sync.test.js"
   ]
 }

@@ -31,3 +31,5 @@ npm run build
 ```
 
 shared/ enthält eine mitgelieferte Kopie der gemeinsamen Spielregeln als lokales npm-Workspace-Paket. Es ist keine Paketveröffentlichung und kein Checkout des API-Repositories erforderlich. Kartenbilder liegen unter public/card-art/, Originale und Erzeugungsprompts unter artwork/.
+
+Vollstände und Änderungen sind durch Weltrevisionen geordnet. Verspätete ältere Vollstände können einen neueren Spielstand nicht überschreiben. Native WebSocket-Ping/Pong-Nachrichten halten die Verbindung aktiv; ein zweiter JSON-Heartbeat entfällt.

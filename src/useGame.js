@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { newestWorld, applyWorldPatch } from './lib/world-sync.js';
 
 async function request(path, options = {}) {
   const response = await fetch(path, { credentials: 'same-origin', ...options, headers: { 'Content-Type': 'application/json', ...options.headers } });
@@ -40,9 +41,10 @@ export function useGame() {
     toastTimers.current.add(timer);
   }, []);
   const acceptWorld = useCallback((next) => {
-    if (!next) return;
-    worldRef.current = next;
-    setWorld(next);
+    const accepted = newestWorld(worldRef.current, next);
+    if (!accepted || accepted === worldRef.current) return;
+    worldRef.current = accepted;
+    setWorld(accepted);
   }, []);
   const load = useCallback(async () => {
     setStatus('loading'); setError('');
@@ -60,7 +62,6 @@ export function useGame() {
     if (!player?.id) return;
     let stopped = false;
     let reconnectTimer;
-    let heartbeat;
     let ticketRequest;
     let connectionAttempt = 0;
     let attempt = 0;
@@ -91,11 +92,10 @@ export function useGame() {
         return;
       } finally { clearTimeout(ticketTimeout); if (ticketRequest === controller) ticketRequest = null; }
       socket.current = ws;
-      let connectionHeartbeat;
       ws.onopen = () => {
         if (stopped || socket.current !== ws) return ws.close();
-        connectionHeartbeat = setInterval(() => { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'ping' })); }, 5000);
-        heartbeat = connectionHeartbeat;
+        // Browsers answer the server's WebSocket control pings automatically.
+        // A second JSON heartbeat would duplicate presence writes in Redis.
       };
       ws.onmessage = ({ data }) => {
         if (stopped || socket.current !== ws) return;
@@ -109,13 +109,9 @@ export function useGame() {
           attempt = 0; setStatus('connected'); setError('');
         }
         if (event.type === 'patch') {
-          const old = worldRef.current;
-          if (!old || old.revision !== event.baseRevision) { ws.send(JSON.stringify({ type: 'resync' })); return; }
-          const remove = new Set(event.remove || []);
-          const changed = new Map((event.upsert || []).map((card) => [card.id, card]));
-          const cards = old.cards.filter((card) => !remove.has(card.id)).map((card) => { const next = changed.get(card.id); changed.delete(card.id); return next || card; });
-          cards.push(...changed.values());
-          acceptWorld({ ...old, ...event.changes, cards, revision: event.revision });
+          const next = applyWorldPatch(worldRef.current, event);
+          if (!next) { ws.send(JSON.stringify({ type: 'resync' })); return; }
+          acceptWorld(next);
         }
         if (event.type === 'lock') {
           setLocks((old) => event.playerId ? { ...old, [event.cardId]: event } : Object.fromEntries(Object.entries(old).filter(([id]) => id !== event.cardId)));
@@ -136,7 +132,6 @@ export function useGame() {
         }
       };
       ws.onclose = () => {
-        clearInterval(connectionHeartbeat);
         const current = socket.current === ws;
         if (current) socket.current = null;
         if (stopped || !current) return;
@@ -146,7 +141,7 @@ export function useGame() {
       ws.onerror = () => ws.close();
     }
     connect();
-    return () => { stopped = true; connectionAttempt++; ticketRequest?.abort(); clearTimeout(reconnectTimer); clearInterval(heartbeat); rejectPending(); socket.current?.close(); };
+    return () => { stopped = true; connectionAttempt++; ticketRequest?.abort(); clearTimeout(reconnectTimer); rejectPending(); socket.current?.close(); };
   }, [player?.id, acceptWorld, notify]);
 
   const join = useCallback(async (name) => {
