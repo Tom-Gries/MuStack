@@ -1,0 +1,114 @@
+.combat-arena,
+.combat-banner,
+.combat-impact {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+}
+
+.combat-arena {
+  z-index: 8;
+  border: 3px solid #b84e3b;
+  border-radius: 15px;
+  background: #ba513b0d;
+  box-shadow: 0 0 0 5px #bd574219, inset 0 0 25px #ba513b12;
+  animation: combat-alert 1.5s ease-in-out infinite;
+}
+
+.combat-arena--impact {
+  border-color: #d84c32;
+  background: #c552391b;
+  box-shadow: 0 0 0 5px #c552392b, inset 0 0 35px #c5523925;
+}
+
+.combat-corner {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 3px solid #b84e3b;
+  background: transparent;
+}
+.combat-corner--tl { left: -6px; top: -6px; border-right: 0; border-bottom: 0; border-radius: 9px 0 0; }
+.combat-corner--tr { right: -6px; top: -6px; border-left: 0; border-bottom: 0; border-radius: 0 9px 0 0; }
+.combat-corner--bl { left: -6px; bottom: -6px; border-right: 0; border-top: 0; border-radius: 0 0 0 9px; }
+.combat-corner--br { right: -6px; bottom: -6px; border-left: 0; border-top: 0; border-radius: 0 0 9px; }
+
+.combat-banner {
+  z-index: 45;
+  overflow: hidden;
+  border: 1px solid #aa4937;
+  border-radius: 8px;
+  color: #fdf3dd;
+  background: #a94b3a;
+  box-shadow: 0 4px 11px #6f33212b;
+  animation: combat-appear .18s ease-out;
+}
+
+.combat-banner-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 11px 6px;
+  background: #b6533f;
+}
+.combat-banner-title > span:first-child { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 650; letter-spacing: 1.1px; text-transform: uppercase; }
+.combat-round { font-size: 8px; letter-spacing: .4px; color: #f4d2b7; font-variant-numeric: tabular-nums; }
+.combat-contenders { display: flex; justify-content: space-between; align-items: center; gap: 11px; padding: 7px 11px 5px; }
+.combat-fighter { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: 1; min-width: 0; }
+.combat-fighter--rat { flex-direction: row-reverse; }
+.combat-party { display: grid; flex: 1; min-width: 0; gap: 7px; }
+.combat-fighter-name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 9px; max-width: 100px; font-weight: 500; }
+.combat-fighter-health { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; font-size: 9px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.combat-fighter-health small { font-size: 7px; font-weight: 400; margin-left: -1px; color: #e9bc9c; }
+.combat-fighter-health svg { width: 9px; height: 9px; color: #e4a488; }
+.combat-versus { font: italic 10px Georgia, serif; color: #e5b496; }
+.combat-attack-timer { display: flex; align-items: center; gap: 7px; padding: 3px 11px 8px; }
+.combat-attack-timer > span:first-child { font-size: 7px; color: #e9c2a4; white-space: nowrap; }
+.combat-attack-track { display: block; flex: 1; height: 3px; background: #73382e; border-radius: 4px; overflow: hidden; }
+.combat-attack-track > i { display: block; height: 100%; border-radius: inherit; background: #f3c486; transition: width .1s linear; }
+.combat-attack-timer strong { min-width: 26px; text-align: right; font-size: 8px; font-weight: 500; font-variant-numeric: tabular-nums; color: #f8ddba; }
+
+.combat-impact {
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  padding: 6px 8px;
+  border: 1px solid #b84e3b;
+  border-radius: 6px;
+  color: #fff3df;
+  background: #bf523a;
+  box-shadow: 0 3px 7px #823b2a30;
+  animation: combat-hit-float .95s ease-out both;
+}
+.combat-impact strong { font-size: 12px; font-weight: 700; }
+.combat-impact span { font-size: 8px; color: #f3cfad; }
+.combat-impact--hit { background: #f9eed7; color: #a24b35; border-color: #d9ab7e; }
+.combat-impact--hit strong { font-size: 9px; font-weight: 600; }
+.combat-impact svg { width: 12px; height: 12px; }
+.card.in-combat { border-color: #ad4d39; box-shadow: 0 2px 0 #d9b09a, 0 0 0 2px #b9573c28, 0 4px 8px #334c3915; }
+.card.in-combat .card-hp { color: #b04f3a; }
+
+@keyframes combat-alert {
+  0%, 100% { outline: 1px solid #bc5b4210; outline-offset: 4px; }
+  50% { outline: 3px solid #bc5b4225; outline-offset: 7px; }
+}
+@keyframes combat-appear {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes combat-hit-float {
+  0% { opacity: 0; transform: translate(-50%, 6px) scale(.85); }
+  16% { opacity: 1; transform: translate(-50%, -2px) scale(1.08); }
+  35% { opacity: 1; transform: translate(-50%, -8px) scale(1); }
+  76% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -29px) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .combat-arena, .combat-banner, .combat-impact { animation: none; }
+  .combat-attack-track > i { transition: none; }
+  .combat-impact { transform: translateX(-50%); }
+}
