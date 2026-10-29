@@ -25,7 +25,6 @@ export function useGame() {
   const pending = useRef(new Map());
   const offset = useRef(0);
   const worldRef = useRef(null);
-  const playerRef = useRef(null);
   const lastDrag = useRef(0);
   const toastTimers = useRef(new Set());
   const notify = useCallback((message, kind = 'info') => {
@@ -51,7 +50,6 @@ export function useGame() {
     finally { setLoaded(true); }
   }, [acceptWorld]);
   useEffect(() => { load(); return () => { for (const timer of toastTimers.current) clearTimeout(timer); }; }, [load]);
-  useEffect(() => { playerRef.current = player; }, [player]);
 
   useEffect(() => {
     if (!player?.id) return;

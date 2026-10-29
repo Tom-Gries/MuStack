@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_CATALOG } from '../shared/catalog.js';
+import { DEFAULT_CATALOG } from '@stackfriends/shared/catalog.js';
 import { buildCatalogGraph, layoutCatalogGraph } from '../src/lib/catalog-graph.js';
 import { serializeCatalog } from '../src/lib/catalog-export.js';
 

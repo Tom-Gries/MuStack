@@ -1,41 +1,49 @@
 # StackFriends – Spiel
 
-Eigenständiges Vite-/React-Frontend für https://github.com/Tom-Gries/MuStackAPI.
+[MuStack](https://github.com/Tom-Gries/MuStack) enthält das Vite-/React-Frontend. Die API liegt in [MuStackAPI](https://github.com/Tom-Gries/MuStackAPI), die gemeinsamen Spielregeln in [MuStackShared](https://github.com/Tom-Gries/MuStackShared). Jedes Repository hat seine eigene Git-Historie.
 
-## Lokal
+## Lokal entwickeln
 
-Node.js ab Version 22. Im Repository-Hauptordner:
+Node.js ab Version 22. Im Frontend-Ordner:
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Die API läuft standardmäßig auf http://127.0.0.1:3001. Eine andere lokale API lässt sich mit DEV_BACKEND_URL in .env.local wählen.
+Das Spiel läuft auf http://127.0.0.1:5173 und erreicht die API standardmäßig auf Port 3001. Diese im Backend-Ordner mit `npm run dev:local` für eine lokale Dateiwelt oder mit `npm run dev` für die konfigurierte Datenbank starten.
 
-## Vercel
+Optional lässt sich die lokale API-Adresse mit `DEV_BACKEND_URL` in `.env.local` ändern. Zugangsdaten gehören ausschließlich ins Backend.
 
-- Dieses Repository als eigenes Projekt importieren. Root Directory leer lassen (Repository-Hauptordner), Framework Vite.
-- Build: npm run build. Ausgabe: dist. Die vercel.json ist vorbereitet.
-- Server-Umgebungsvariable BACKEND_URL auf die öffentliche HTTPS-Adresse der API setzen, ohne /api am Ende.
-- Im API-Projekt APP_ORIGIN auf die genaue veröffentlichte Spieladresse setzen.
-- MongoDB-/Redis-Zugangsdaten gehören ausschließlich ins API-Projekt.
-
-HTTP-Anfragen laufen über einen Proxy auf derselben Spieladresse; WebSockets verwenden kurzlebige Einmal-Tickets für die direkte API-Verbindung.
-
-## Prüfen
+## Prüfen und bauen
 
 ```sh
 npm test
 npm run build
 ```
 
-shared/ enthält eine mitgelieferte Kopie der gemeinsamen Spielregeln als lokales npm-Workspace-Paket. Es ist keine Paketveröffentlichung und kein Checkout des API-Repositories erforderlich. Kartenbilder liegen unter public/card-art/, Originale und Erzeugungsprompts unter artwork/.
+Der Build liegt in `dist/`. Installation, Tests und CI funktionieren ohne weitere lokale Checkouts. Der optionale Befehl `npm run test:integration` benötigt einen installierten API-Checkout unter `../backend` oder dem über `API_DIR` angegebenen Ordner. Er startet eine isolierte Testwelt.
 
-Vollstände und Änderungen sind durch Weltrevisionen geordnet. Verspätete ältere Vollstände können einen neueren Spielstand nicht überschreiben. Native WebSocket-Ping/Pong-Nachrichten halten die Verbindung aktiv; ein zweiter JSON-Heartbeat entfällt.
+Der fachliche Abnahmeplan liegt in [docs/ABNAHME_V1.md](docs/ABNAHME_V1.md). Kartenbilder liegen in `public/card-art/`, Originale und Prompts in `artwork/`.
 
-## Verbindungszeit sparen
+## Gemeinsame Spielregeln
 
-Hintergrund-Tabs trennen sich nach 30 Sekunden; ein serverseitiger Termin sichert dies auch bei gedrosselten Browser-Timern ab. Beim Zurückwechseln verbindet sich das Spiel automatisch und gleicht den Weltstand ab. Offline-Tabs warten auf die Rückkehr des Internets. Sind alle Spieler offline, pausiert die Welt; die bestehenden Echtzeitregeln des Erdbeerfelds bleiben erhalten.
+Beide Apps beziehen `@stackfriends/shared` als öffentliches HTTPS-Archiv aus dem Shared-Repository. Dieselbe vollständige Commit-SHA mit 40 Zeichen legt ihre gemeinsame Regelversion fest; `package.json` und `package-lock.json` werden mitcommittet. Die Lockdatei enthält auch die Integritätsprüfung des Archivs.
 
-Die API sendet Cloud-Verbindungen nach 280 Sekunden ein privates, 30 Sekunden gültiges Einmalticket. Reguläre Wiederverbindungen können damit den zusätzlichen HTTP-Ticketabruf überspringen. Fehler verwenden weiterhin den HTTP-Fallback. Für zwei Spieler ergibt das rechnerisch etwa 24 statt 72 reguläre Function-Aufrufe pro Stunde, plus Seitenstarts und ungeplante Wiederverbindungen. Aktive WebSockets belegen weiterhin Vercel-RAM; eine Cloudmessung steht aus.
+Regeln zuerst im Shared-Repository ändern, mit `npm test` prüfen und committen/pushen. Danach in Frontend und API jeweils die neue SHA einsetzen:
+
+```sh
+npm install '@stackfriends/shared@https://codeload.github.com/Tom-Gries/MuStackShared/tar.gz/<commit-sha>'
+```
+
+Anschließend beide Apps prüfen und die jeweiligen Änderungen committen/pushen. `npm ci` lädt die festgelegte öffentliche Version automatisch. Ein lokaler Shared-Checkout, Kopierschritte und zusätzliche Zugangsdaten werden für Builds nicht benötigt.
+
+## Vercel
+
+Dieses Repository als eigenes Projekt mit Framework **Vite** importieren. Root Directory ist der Repository-Hauptordner, Build-Befehl `npm run build`, Ausgabe `dist/`.
+
+| Pflichtvariable | Wert |
+| --- | --- |
+| `BACKEND_URL` | Öffentliche HTTPS-Adresse der API, ohne `/api` am Ende. Nur serverseitig setzen. |
+
+Die vollständige API-Konfiguration steht in der [Backend-Anleitung](https://github.com/Tom-Gries/MuStackAPI#konfiguration). Das Shared-Paket ist eine Bibliothek und erhält kein eigenes Vercel-Deployment.

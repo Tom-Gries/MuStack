@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowDownToLine, ArrowLeft, ArrowUpRight, BookOpen, Check, ChevronRight, Coins, Hand, Heart, Leaf, Maximize2, Minus, MousePointer2, PackageOpen, Plus, RefreshCw, Settings, Sprout, Users, Wifi, WifiOff, X } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpRight, BookOpen, Check, Coins, Hand, Heart, Leaf, Maximize2, Minus, MousePointer2, PackageOpen, Plus, RefreshCw, Settings, Sprout, Users, WifiOff, X } from 'lucide-react';
 import { CONFIG, getCardTypes, getCatalog, getPacks, getRecipes } from '@stackfriends/shared/catalog.js';
 import { combatEnemyIds, combatHumanIds } from '@stackfriends/shared/combat.js';
 import CardArt, { CatalogArtProvider } from './components/GameArt.jsx';
