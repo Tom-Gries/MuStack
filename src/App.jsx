@@ -166,10 +166,10 @@ export default function App() {
   const connected = game.status === 'connected';
   const [showReconnect, setShowReconnect] = useState(false);
   useEffect(() => {
-    if (!player || connected) { setShowReconnect(false); return; }
+    if (!player || connected || game.status === 'paused' || game.status === 'offline') { setShowReconnect(false); return; }
     const timer = setTimeout(() => setShowReconnect(true), 2000);
     return () => clearTimeout(timer);
-  }, [player?.id, connected]);
+  }, [player?.id, connected, game.status]);
   const cards = world?.cards || [];
   const gold = cards.filter((c) => c.type === 'gold').length;
   const storedGold = cards.filter((c) => c.type === 'piggyBank').reduce((sum, c) => sum + (c.gold || 0), 0);
@@ -304,7 +304,7 @@ export default function App() {
 
   return <CatalogArtProvider value={CARD_TYPES}><div className="app">
     <header className="topbar"><a className="brand" href="#" onClick={(event) => { event.preventDefault(); if (!settingsOpen) center(); }} aria-label="StackFriends – zur eigenen Karte"><span className="brand-mark"><Leaf size={25} strokeWidth={1.5} /></span><span><strong>Stack<span>Friends</span></strong><small>GEMEINSAM WÄCHST ETWAS</small></span></a>
-      <div className="header-right"><span className={`connection-status ${connected ? 'is-online' : ''}`} title={game.mode === 'cloud' ? 'Mit MongoDB verbunden' : 'Gemeinsame lokale Testwelt'}><i />{connected ? 'Welt verbunden' : game.status === 'reconnecting' ? 'Verbinde erneut …' : player ? 'Verbinde …' : 'Eine gemeinsame Welt'}</span><div className="header-divider" /><div className="online-badge"><div className="avatar-group">{game.online.slice(0, 3).map((person, i) => <span className="avatar" key={person.id || i} title={person.name}>{person.name?.slice(0, 1).toUpperCase() || '?'}</span>)}</div><Users size={16} /><span>{game.online.length || (player ? 1 : 0)} am Tisch</span></div>{player && <a className={`help-button settings-link ${settingsOpen ? 'is-active' : ''}`} href="#settings" aria-current={settingsOpen ? 'page' : undefined}><Settings size={17} /><span>Einstellungen</span></a>}<button className="help-button" onClick={() => setDialog('help')}><BookOpen size={17} /><span>Spielhilfe</span></button>{player && <span className="player-chip">{player.name}</span>}</div>
+      <div className="header-right"><span className={`connection-status ${connected ? 'is-online' : ''}`} title={game.mode === 'cloud' ? 'Mit MongoDB verbunden' : 'Gemeinsame lokale Testwelt'}><i />{connected ? 'Welt verbunden' : game.status === 'paused' ? 'Verbindung pausiert' : game.status === 'offline' ? 'Offline' : game.status === 'reconnecting' ? 'Verbinde erneut …' : player ? 'Verbinde …' : 'Eine gemeinsame Welt'}</span><div className="header-divider" /><div className="online-badge"><div className="avatar-group">{game.online.slice(0, 3).map((person, i) => <span className="avatar" key={person.id || i} title={person.name}>{person.name?.slice(0, 1).toUpperCase() || '?'}</span>)}</div><Users size={16} /><span>{game.online.length || (player ? 1 : 0)} am Tisch</span></div>{player && <a className={`help-button settings-link ${settingsOpen ? 'is-active' : ''}`} href="#settings" aria-current={settingsOpen ? 'page' : undefined}><Settings size={17} /><span>Einstellungen</span></a>}<button className="help-button" onClick={() => setDialog('help')}><BookOpen size={17} /><span>Spielhilfe</span></button>{player && <span className="player-chip">{player.name}</span>}</div>
     </header>
     {player && settingsVisited && <div style={settingsOpen ? { display: 'contents' } : { display: 'none' }}><SettingsPage world={world} onSave={async (catalog, baseCatalogRevision) => { await execute({ type: 'catalog-save', catalog, baseCatalogRevision }, 'Einstellungen für alle gespeichert.'); return getCatalog(game.worldRef.current); }} onClose={() => { location.hash = ''; }} /></div>}
     <main className="workspace" style={settingsOpen && player ? { display: 'none' } : undefined}>
@@ -333,6 +333,7 @@ export default function App() {
         <footer className="sidebar-footer"><span><Leaf size={13} /> Zusammen geht mehr.</span><small>STACKFRIENDS · V1</small></footer>
       </aside>
     </main>
+    {game.status === 'offline' && <div className="connection-banner"><WifiOff size={15} /> Du bist offline. Sobald dein Internet zurück ist, geht es weiter.</div>}
     {(!game.loaded || !player) && <Welcome onJoin={game.join} status={game.status} error={game.error} onRetry={game.reload} />}
     {dialog === 'help' && <Help onClose={closeDialog} />}
     {inspect && <Dialog title={inspect.name || CARD_TYPES[inspect.type].name} onClose={closeDialog} className="card-detail"><div className="detail-art" style={{ background: CARD_TYPES[inspect.type].color }}><CardArt type={inspect.type} /></div><p>{CARD_TYPES[inspect.type].description}</p><div className="detail-stats">{inspect.hp !== undefined && <span><Heart size={16} />{inspect.hp} / {creatureProfile(world, inspect)?.hp ?? CONFIG.humanHp} Leben</span>}<span><Coins size={16} />{CARD_TYPES[inspect.type].sellPrice ? `${CARD_TYPES[inspect.type].sellPrice} Gold Verkaufswert` : 'Nicht verkaufbar'}</span></div>{inspect.toolId && <button className="secondary-button" onClick={() => execute({ type: 'unequip', cardId: inspect.id }, 'Werkzeug abgelegt.').catch(() => {})}>Werkzeug ablegen <ArrowUpRight size={15} /></button>}</Dialog>}

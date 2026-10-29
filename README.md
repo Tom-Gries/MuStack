@@ -33,3 +33,9 @@ npm run build
 shared/ enthält eine mitgelieferte Kopie der gemeinsamen Spielregeln als lokales npm-Workspace-Paket. Es ist keine Paketveröffentlichung und kein Checkout des API-Repositories erforderlich. Kartenbilder liegen unter public/card-art/, Originale und Erzeugungsprompts unter artwork/.
 
 Vollstände und Änderungen sind durch Weltrevisionen geordnet. Verspätete ältere Vollstände können einen neueren Spielstand nicht überschreiben. Native WebSocket-Ping/Pong-Nachrichten halten die Verbindung aktiv; ein zweiter JSON-Heartbeat entfällt.
+
+## Verbindungszeit sparen
+
+Hintergrund-Tabs trennen sich nach 30 Sekunden; ein serverseitiger Termin sichert dies auch bei gedrosselten Browser-Timern ab. Beim Zurückwechseln verbindet sich das Spiel automatisch und gleicht den Weltstand ab. Offline-Tabs warten auf die Rückkehr des Internets. Sind alle Spieler offline, pausiert die Welt; die bestehenden Echtzeitregeln des Erdbeerfelds bleiben erhalten.
+
+Die API sendet Cloud-Verbindungen nach 280 Sekunden ein privates, 30 Sekunden gültiges Einmalticket. Reguläre Wiederverbindungen können damit den zusätzlichen HTTP-Ticketabruf überspringen. Fehler verwenden weiterhin den HTTP-Fallback. Für zwei Spieler ergibt das rechnerisch etwa 24 statt 72 reguläre Function-Aufrufe pro Stunde, plus Seitenstarts und ungeplante Wiederverbindungen. Aktive WebSockets belegen weiterhin Vercel-RAM; eine Cloudmessung steht aus.

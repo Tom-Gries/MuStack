@@ -1,18 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { newestWorld, applyWorldPatch } from './lib/world-sync.js';
+import { createGameConnection } from './lib/game-connection.js';
+export { socketTicketOptions } from './lib/game-connection.js';
 
 async function request(path, options = {}) {
   const response = await fetch(path, { credentials: 'same-origin', ...options, headers: { 'Content-Type': 'application/json', ...options.headers } });
   const result = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(result.message || result.error || 'Die Verbindung zur Welt ist gerade nicht möglich.');
   return result;
-}
-
-export function socketTicketOptions(result, pageProtocol = location.protocol) {
-  const url = new URL(result.socketUrl);
-  if (!/^[A-Za-z0-9_-]{16,200}$/.test(result.ticket || '') || url.username || url.password || url.pathname !== '/api/socket' || url.search || url.hash
-    || !(url.protocol === 'wss:' || url.protocol === 'ws:' && pageProtocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname))) throw new Error('Die Echtzeitverbindung konnte nicht vorbereitet werden.');
-  return { url: url.href, protocols: ['stackfriends', `ticket.${result.ticket}`] };
 }
 
 export function useGame() {
@@ -60,53 +55,22 @@ export function useGame() {
 
   useEffect(() => {
     if (!player?.id) return;
-    let stopped = false;
-    let reconnectTimer;
-    let ticketRequest;
-    let connectionAttempt = 0;
-    let attempt = 0;
-    function reconnect() {
-      if (stopped) return;
-      setStatus('reconnecting');
-      clearTimeout(reconnectTimer);
-      reconnectTimer = setTimeout(connect, Math.min(15000, 700 * 2 ** attempt++) + Math.random() * 500);
-    }
     function rejectPending() {
       for (const [id, callback] of pending.current) { clearTimeout(callback.timeout); callback.reject(new Error('Die Verbindung wurde unterbrochen. Bitte erneut versuchen.')); pending.current.delete(id); }
     }
-    async function connect() {
-      if (stopped) return;
-      const currentAttempt = ++connectionAttempt;
-      setStatus('connecting');
-      const controller = new AbortController();
-      ticketRequest = controller;
-      const ticketTimeout = setTimeout(() => controller.abort(), 12000);
-      let ws;
-      try {
-        const ticket = await request('/api/socket-ticket', { method: 'POST', body: '{}', signal: controller.signal });
-        if (stopped || currentAttempt !== connectionAttempt) return;
-        const options = socketTicketOptions(ticket);
-        ws = new WebSocket(options.url, options.protocols);
-      } catch (err) {
-        if (!stopped && currentAttempt === connectionAttempt) { setError(err.name === 'AbortError' ? 'Die Echtzeitverbindung ist gerade nicht erreichbar.' : err.message); reconnect(); }
-        return;
-      } finally { clearTimeout(ticketTimeout); if (ticketRequest === controller) ticketRequest = null; }
-      socket.current = ws;
-      ws.onopen = () => {
-        if (stopped || socket.current !== ws) return ws.close();
-        // Browsers answer the server's WebSocket control pings automatically.
-        // A second JSON heartbeat would duplicate presence writes in Redis.
-      };
-      ws.onmessage = ({ data }) => {
-        if (stopped || socket.current !== ws) return;
-        let event;
-        try { event = JSON.parse(data); } catch { return; }
+    const connection = createGameConnection({
+      requestTicket: (signal) => request('/api/socket-ticket', { method: 'POST', body: '{}', signal }),
+      onSocket: (ws) => { socket.current = ws; },
+      onStatus: setStatus,
+      onError: setError,
+      onDisconnect: () => { setLocks({}); setPreviews({}); rejectPending(); },
+      onEvent: (event, ws) => {
         if (event.serverTime) offset.current = event.serverTime - Date.now();
         if (event.online) setOnline(event.online);
         if (event.mode) setMode(event.mode);
         if (event.type === 'state') {
           acceptWorld(event.world);
-          attempt = 0; setStatus('connected'); setError('');
+          setError('');
         }
         if (event.type === 'patch') {
           const next = applyWorldPatch(worldRef.current, event);
@@ -130,18 +94,10 @@ export function useGame() {
           if (callback) { clearTimeout(callback.timeout); callback.reject(new Error(event.message)); pending.current.delete(event.commandId); }
           else notify(event.message, 'error');
         }
-      };
-      ws.onclose = () => {
-        const current = socket.current === ws;
-        if (current) socket.current = null;
-        if (stopped || !current) return;
-        setLocks({}); setPreviews({});
-        rejectPending(); reconnect();
-      };
-      ws.onerror = () => ws.close();
-    }
-    connect();
-    return () => { stopped = true; connectionAttempt++; ticketRequest?.abort(); clearTimeout(reconnectTimer); rejectPending(); socket.current?.close(); };
+      },
+    });
+    connection.start();
+    return () => connection.stop();
   }, [player?.id, acceptWorld, notify]);
 
   const join = useCallback(async (name) => {
