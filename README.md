@@ -26,6 +26,14 @@ Der Build liegt in `dist/`. Installation, Tests und CI funktionieren ohne weiter
 
 Der fachliche Abnahmeplan liegt in [docs/ABNAHME_V1.md](docs/ABNAHME_V1.md). Kartenbilder liegen in `public/card-art/`, Originale und Prompts in `artwork/`.
 
+## Persönliche Welten und Rathaus
+
+Jeder Name besitzt eine eigene Welt mit einer Menschenkarte und neun Goldkarten. Ein bestehender Name öffnet dieselbe Welt; der Zugang wird ausschließlich über Name und Cookie gemerkt.
+
+100 Steine und ein Mensch ergeben nach 60 Sekunden ein Rathaus. Ein Klick auf die Karte öffnet die Namensliste und gespeicherte Materialmengen anderer Spieler. Karten auf einen Namen ziehen, um sie zu verschenken. Geschenke kommen beim nächsten Abgleich nach etwa einer Minute an; offline wartet der Eingang bis zur Rückkehr.
+
+Das Spiel verwendet kurze HTTP-Aufrufe. Dragbewegungen und Animationen laufen lokal. Ein kleines Lebenszeichen erkennt andere Spieler; nur bei weiterer Online-Anwesenheit läuft ein regelmäßiger vollständiger Hintergrundabgleich. Eigene Arbeits-/Kampftermine sowie angekündigte Geschenke werden unabhängig davon verarbeitet. Ohne geöffnetes Spiel entstehen keine Browseranfragen. Online-Hinweise erscheinen ausschließlich bei geöffnetem Spiel mit eigenem Rathaus.
+
 ## Gemeinsame Spielregeln
 
 Beide Apps beziehen `@stackfriends/shared` als öffentliches HTTPS-Archiv aus dem Shared-Repository. Dieselbe vollständige Commit-SHA mit 40 Zeichen legt ihre gemeinsame Regelversion fest; `package.json` und `package-lock.json` werden mitcommittet. Die Lockdatei enthält auch die Integritätsprüfung des Archivs.

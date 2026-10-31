@@ -1,5 +1,5 @@
 const MAX_BODY_BYTES = 256 * 1024;
-const ROUTES = new Map([['session', 'GET'], ['health', 'GET'], ['join', 'POST'], ['command', 'POST'], ['socket-ticket', 'POST']]);
+const ROUTES = new Map([['session', 'GET'], ['health', 'GET'], ['join', 'POST'], ['command', 'POST'], ['sync', 'POST'], ['presence', 'POST'], ['players', 'GET'], ['materials', 'POST'], ['gift', 'POST']]);
 const localHost = (hostname) => ['localhost', '127.0.0.1', '[::1]'].includes(hostname);
 
 function backendOrigin(value) {
@@ -48,7 +48,7 @@ function failure(response, status, message) {
   response.end(JSON.stringify({ message }));
 }
 
-/** First-party HTTP routing only. Gameplay and WebSockets run in the API app. */
+/** First-party short HTTP requests; the API owns game state and gift delivery. */
 export function createApiProxy({ backendUrl, fetchImpl = fetch, timeoutMs = 10000 } = {}) {
   const origin = backendOrigin(backendUrl);
   return async function proxy(request, response) {

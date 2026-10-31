@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { createApiProxy } from '../api/proxy.js';
-import { socketTicketOptions } from '../src/useGame.js';
 
 async function serve(t, handler) {
   const server = http.createServer(handler);
@@ -45,10 +44,10 @@ test('frontend proxy accepts parsed Vercel request bodies and route arrays', asy
   assert.equal(seen.options.redirect, 'manual');
 });
 
-test('frontend proxy forwards backend failures and allows the ticket route without changing payloads', async (t) => {
-  const proxy = createApiProxy({ backendUrl: 'https://api.example', fetchImpl: async (url) => new Response(JSON.stringify({ message: url.endsWith('socket-ticket') ? 'Sitzung fehlt.' : 'Veralteter Stand.' }), { status: url.endsWith('socket-ticket') ? 401 : 409 }) });
+test('frontend proxy forwards backend failures without changing payloads', async (t) => {
+  const proxy = createApiProxy({ backendUrl: 'https://api.example', fetchImpl: async (url) => new Response(JSON.stringify({ message: url.endsWith('sync') ? 'Sitzung fehlt.' : 'Veralteter Stand.' }), { status: url.endsWith('sync') ? 401 : 409 }) });
   const front = await serve(t, proxy);
-  const response = await fetch(`${front}/api/socket-ticket`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+  const response = await fetch(`${front}/api/sync`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
   assert.equal(response.status, 401);
   assert.deepEqual(await response.json(), { message: 'Sitzung fehlt.' });
   const conflict = await fetch(`${front}/api/proxy?path=command`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
@@ -90,12 +89,11 @@ test('proxy network errors and redirects fail without leaking credentials or fol
   assert.equal((await fetch(`${redirect}/api/health`)).status, 502);
 });
 
-test('socket tickets travel in protocols rather than URLs, with secure or local socket origins', () => {
-  const ticket = 'a-random-opaque-socket-ticket';
-  const result = socketTicketOptions({ socketUrl: 'wss://api.example/api/socket', ticket }, 'https:');
-  assert.deepEqual(result, { url: 'wss://api.example/api/socket', protocols: ['stackfriends', `ticket.${ticket}`] });
-  assert.ok(!result.url.includes(ticket));
-  assert.equal(socketTicketOptions({ socketUrl: 'ws://localhost:3001/api/socket', ticket }, 'http:').url, 'ws://localhost:3001/api/socket');
-  for (const socketUrl of ['ws://api.example/api/socket', 'https://api.example/api/socket', 'wss://user:pass@api.example/api/socket', 'wss://api.example/api/socket?ticket=secret', 'wss://api.example/elsewhere']) assert.throws(() => socketTicketOptions({ socketUrl, ticket }, 'https:'));
-  assert.throws(() => socketTicketOptions({ socketUrl: 'wss://api.example/api/socket', ticket: 'invalid token value' }, 'https:'));
+test('personal-world HTTP routes are allowlisted while obsolete sockets are rejected', async (t) => {
+  const calls = [];
+  const front = await serve(t, createApiProxy({ backendUrl: 'https://api.example', fetchImpl: async (url) => { calls.push(url); return new Response('{}'); } }));
+  for (const route of ['sync', 'presence', 'materials', 'gift']) assert.equal((await fetch(`${front}/api/${route}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })).status, 200);
+  assert.equal((await fetch(`${front}/api/players`)).status, 200);
+  assert.equal((await fetch(`${front}/api/socket-ticket`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })).status, 404);
+  assert.equal(calls.length, 5);
 });

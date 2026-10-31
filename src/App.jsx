@@ -7,6 +7,7 @@ import CombatOverlay from './components/CombatOverlay.jsx';
 import SettingsPage from './components/SettingsPage.jsx';
 import PackShop from './components/PackShop.jsx';
 import RecipeBook from './components/RecipeBook.jsx';
+import FriendsPanel from './components/FriendsPanel.jsx';
 import { useGame } from './useGame.js';
 import { dragSelection, overlappingTarget } from './board.js';
 import { creatureProfile } from '@stackfriends/shared/creatures.js';
@@ -71,9 +72,9 @@ const GameCard = memo(function GameCard({ card, world, job, combat, own, index, 
     style={{ '--card-color': card.packColor || definition.color, transform: `translate(${position.x}px, ${position.y + (preview ? (preview.itemOffset ?? (index - (preview.baseOrder || 0))) * STACK : index * STACK)}px)`, zIndex: dragging ? 10000 + index : preview ? 9000 + index : 10 + index }}
     data-card-id={card.id}
     onPointerDown={(event) => onPointerDown(event, card)}
-    onDoubleClick={(event) => { event.stopPropagation(); if (!['piggyBank', 'pack'].includes(card.type)) onInspect(card); }}
-    role={['pack', 'piggyBank'].includes(card.type) ? 'button' : 'group'} tabIndex={['pack', 'piggyBank'].includes(card.type) ? 0 : undefined}
-    onKeyDown={(event) => { if (event.target === event.currentTarget && ['pack', 'piggyBank'].includes(card.type) && ['Enter', ' '].includes(event.key) && !event.repeat) { event.preventDefault(); onActivate(card); } }}
+    onDoubleClick={(event) => { event.stopPropagation(); if (!['piggyBank', 'pack', 'town_hall'].includes(card.type)) onInspect(card); }}
+    role={['pack', 'piggyBank', 'town_hall'].includes(card.type) ? 'button' : 'group'} tabIndex={['pack', 'piggyBank', 'town_hall'].includes(card.type) ? 0 : undefined}
+    onKeyDown={(event) => { if (event.target === event.currentTarget && ['pack', 'piggyBank', 'town_hall'].includes(card.type) && ['Enter', ' '].includes(event.key) && !event.repeat) { event.preventDefault(); onActivate(card); } }}
     aria-label={`${name}${card.type === 'human' ? `, ${card.hp} von 75 Leben` : creature ? `, ${card.hp ?? creature.hp} von ${creature.hp} Leben` : card.type === 'pack' ? `, ${card.cardsLeft ?? CONFIG.packSize} ${(card.cardsLeft ?? CONFIG.packSize) === 1 ? 'Karte' : 'Karten'}, anklicken zum Öffnen` : ''}`}
   >
     <div className="card-header"><span className="card-name" data-split="true" title="Hier teilen: diese Karte und alle darüber ziehen">{name}</span><span className="card-grip" title="Diese Karte und alle darüber bewegen" aria-label="Diese Karte und alle darüber bewegen">⠿</span></div>
@@ -105,14 +106,14 @@ function Welcome({ onJoin, status, error, onRetry }) {
     try { await onJoin(name.trim()); } catch (err) { setMessage(err.message); } finally { setBusy(false); }
   };
   return <div className="welcome-backdrop"><section className="welcome-modal" aria-labelledby="welcome-title">
-    <div className="welcome-art"><span className="welcome-stamp"><Leaf size={15} /> Ein gemeinsames Kartenabenteuer</span><div className="hero-card hero-card-tree"><div>Baum</div><CardArt type="tree" /></div><div className="hero-card hero-card-human"><div>Deine Geschichte</div><CardArt type="human" /></div><div className="hero-card hero-card-gold"><CardArt type="gold" /></div><span className="art-spark spark-one">✳</span><span className="art-spark spark-two">✦</span><span className="welcome-art-caption">Aus kleinen Karten<br />wachsen große Geschichten.</span></div>
-    <div className="welcome-copy"><span className="eyebrow">WILLKOMMEN BEI STACKFRIENDS</span><h1 id="welcome-title">Am Tisch ist<br />noch ein Platz.</h1><p>Sammelt, baut und entdeckt zusammen. Eine Welt, viele Hände – und deine eigene Karte mittendrin.</p>
+    <div className="welcome-art"><span className="welcome-stamp"><Leaf size={15} /> Dein eigenes Kartenabenteuer</span><div className="hero-card hero-card-tree"><div>Baum</div><CardArt type="tree" /></div><div className="hero-card hero-card-human"><div>Deine Geschichte</div><CardArt type="human" /></div><div className="hero-card hero-card-gold"><CardArt type="gold" /></div><span className="art-spark spark-one">✳</span><span className="art-spark spark-two">✦</span><span className="welcome-art-caption">Aus kleinen Karten<br />wachsen große Geschichten.</span></div>
+    <div className="welcome-copy"><span className="eyebrow">WILLKOMMEN BEI STACKFRIENDS</span><h1 id="welcome-title">Deine Welt<br />wartet auf dich.</h1><p>Sammle, baue und entdecke in deiner eigenen Welt. Schau nach, was andere gesammelt haben, und schicke ihnen Geschenke.</p>
       {error ? <div className="welcome-error"><WifiOff size={20} /><p>{error}</p><button className="primary-button" onClick={onRetry}><RefreshCw size={16} /> Erneut verbinden</button></div> : <form onSubmit={submit}>
         <label htmlFor="player-name">Wie heißt du?</label><input className="name-input" id="player-name" name="name" value={name} maxLength={24} autoComplete="nickname" autoFocus placeholder="Dein Name" onChange={(e) => setName(e.target.value)} disabled={busy || status === 'loading'} />
         {message && <span className="form-error" role="alert">{message}</span>}
-        <button className="primary-button" type="submit" disabled={!name.trim() || busy || status === 'loading'}>{busy ? 'Deine Karte wird vorbereitet …' : 'An den Tisch setzen'}<ArrowUpRight size={17} /></button>
+        <button className="primary-button" type="submit" disabled={!name.trim() || busy || status === 'loading'}>{busy ? 'Deine Welt wird vorbereitet …' : 'Meine Welt öffnen'}<ArrowUpRight size={17} /></button>
       </form>}
-      <div className="welcome-note"><Users size={15} /><span>Alle spielen in derselben Welt.<br />Dein Name bleibt in diesem Browser gespeichert.</span></div>
+      <div className="welcome-note"><Users size={15} /><span>Jeder Name hat eine eigene Welt.<br />Dein Zugang bleibt per Cookie in diesem Browser gespeichert.</span></div>
     </div>
   </section></div>;
 }
@@ -130,11 +131,12 @@ function Dialog({ title, onClose, children, className = '' }) {
 }
 
 function Help({ onClose }) {
-  return <Dialog title="Ein kleiner Wegweiser" onClose={onClose}><p className="dialog-intro">Hier entsteht eure Welt. Alles beginnt mit einem Menschen und ein paar Goldkarten.</p><div className="help-grid">
+  return <Dialog title="Ein kleiner Wegweiser" onClose={onClose}><p className="dialog-intro">Hier entsteht deine Welt. Alles beginnt mit deinem Menschen und neun Goldkarten.</p><div className="help-grid">
     <div className="help-step"><MousePointer2 /><h3>Greifen & stapeln</h3><p>Die gegriffene Karte nimmt alle Karten mit, die auf ihr liegen. Am Namen wählst du, an welcher Stelle du den Stapel teilst.</p></div>
     <div className="help-step"><Coins /><h3>Neues entdecken</h3><p>Ziehe Goldkarten oder ein gefülltes Sparschwein zum gewünschten Paket rechts. Beim Schwein wird der offene Preis aus dem Guthaben bezahlt. Klickt das gekaufte Paket an – jeder Klick entdeckt eine Karte.</p></div>
     <div className="help-step"><Hand /><h3>Arbeit beginnt von selbst</h3><p>Lege einen Menschen auf einen Baum, Fels oder Beerenbusch. Mehrere Quellen im Stapel werden nacheinander abgearbeitet. Zutaten und Mensch ergeben neue Dinge.</p></div>
     <div className="help-step"><Heart /><h3>Aufeinander aufpassen</h3><p>Eine Beere heilt ein Leben. Ratten brauchen zwei Treffer. Bei null Leben bleibt eine Leiche zurück.</p></div>
+    <div className="help-step"><Users /><h3>Anderen etwas schenken</h3><p>Baue ein Rathaus aus 100 Steinen mit deinem Menschen. Ein Klick auf die Rathauskarte öffnet die Mitspieler und ihre Materialien. Ziehe Karten auf einen Namen, um sie zu verschenken. Sie kommen beim nächsten Abgleich nach etwa 60 Sekunden an.</p></div>
   </div><div className="help-tip"><Sprout size={19} /><p>Boden + Beere wächst in einer Stunde zum Erdbeerfeld – auch offline. Es wartet höchstens eine Ernte mit zehn Beeren.</p></div><button className="primary-button" onClick={onClose}>Alles klar, los geht’s <Check size={17} /></button></Dialog>;
 }
 
@@ -152,6 +154,7 @@ export default function App() {
   const [zoom, setZoom] = useState(1);
   const [drag, setDrag] = useState(null);
   const [highlight, setHighlight] = useState(null);
+  const [friendsOpen, setFriendsOpen] = useState(false);
   const [expandedRecipe, setExpandedRecipe] = useState(null);
   const dragRef = useRef(null);
   const panRef = useRef(null);
@@ -164,13 +167,12 @@ export default function App() {
   const RECIPES = getRecipes(world);
   const packs = getPacks(world);
   const connected = game.status === 'connected';
-  const [showReconnect, setShowReconnect] = useState(false);
-  useEffect(() => {
-    if (!player || connected || game.status === 'paused' || game.status === 'offline') { setShowReconnect(false); return; }
-    const timer = setTimeout(() => setShowReconnect(true), 2000);
-    return () => clearTimeout(timer);
-  }, [player?.id, connected, game.status]);
+  const saveLabel = !player ? 'Persönliche Welten' : game.status === 'offline' ? 'Offline' : game.saveStatus === 'error' ? 'Abgleich fehlgeschlagen' : game.saveStatus === 'saving' ? 'Speichert …' : connected ? 'Gespeichert' : 'Lädt …';
+  const savedAt = game.lastSavedAt && new Date(game.lastSavedAt);
+  const saveTitle = savedAt && Number.isFinite(savedAt.getTime()) ? `Zuletzt gespeichert: ${savedAt.toLocaleString('de-DE')}` : 'Deine Welt wird automatisch gespeichert.';
   const cards = world?.cards || [];
+  const hasTownHall = cards.some((card) => card.type === 'town_hall');
+  useEffect(() => { if (!hasTownHall) setFriendsOpen(false); }, [hasTownHall]);
   const gold = cards.filter((c) => c.type === 'gold').length;
   const storedGold = cards.filter((c) => c.type === 'piggyBank').reduce((sum, c) => sum + (c.gold || 0), 0);
   const humanCount = cards.filter((c) => c.type === 'human').length;
@@ -199,6 +201,7 @@ export default function App() {
     catch (err) { game.notify(err.message, 'error'); throw err; }
   }, [game.command, game.notify, game.worldRef, zoom]);
   const activateCard = useCallback((card) => {
+    if (card.type === 'town_hall') setFriendsOpen(true);
     if (card.type === 'piggyBank') execute({ type: 'withdraw', cardId: card.id }).catch(() => {});
     if (card.type === 'pack') execute({ type: 'open-pack', cardId: card.id }).catch(() => {});
   }, [execute]);
@@ -224,8 +227,6 @@ export default function App() {
     if (toolId) card = cards.find((item) => item.id === toolId) || card;
     const split = true;
     const takeAbove = !toolId;
-    const existingLock = Object.values(game.locks).find((lock) => (lock.cardId === card.id || lock.cardIds?.includes(card.id)) && lock.playerId !== player?.id && lock.expiresAt > Date.now() + game.offset.current);
-    if (existingLock) { game.notify('Diese Karte wird gerade von jemand anderem bewegt.'); return; }
     event.preventDefault(); event.stopPropagation();
     const origin = point(event);
     let position = realPosition(card, world, Date.now(), game.offset.current);
@@ -234,9 +235,8 @@ export default function App() {
     const itemOffsets = Object.fromEntries(cards.filter((item) => ids.includes(item.id)).map((item) => [item.id, card.equippedTo ? 0 : item.order - card.order]));
     const value = { cardId: card.id, card, split, takeAbove, ids, itemOffsets, x: position.x, y: position.y + (split && !card.equippedTo ? card.order * STACK : 0), originX: position.x, originY: position.y + (split && !card.equippedTo ? card.order * STACK : 0), start: origin, clientX: event.clientX, clientY: event.clientY, moved: false, harvest: Boolean(event.target.closest('[data-harvest]')) };
     dragRef.current = value;
-    game.send({ type: 'drag-start', cardId: card.id, split, takeAbove });
     event.currentTarget.setPointerCapture?.(event.pointerId);
-  }, [connected, cards, world, player?.id, game.locks, game.send, game.notify, point]);
+  }, [connected, cards, world, game.offset, point, zoom]);
 
   useEffect(() => {
     const move = (event) => {
@@ -249,12 +249,12 @@ export default function App() {
       const next = point(event);
       if (!value.moved && Math.hypot(event.clientX - value.clientX, event.clientY - value.clientY) < 5) return;
       value.moved = true;
+      value.clientX = event.clientX; value.clientY = event.clientY;
       value.x = Math.max(24, Math.min(CONFIG.worldWidth - W - 24, value.originX + next.x - value.start.x));
       value.y = Math.max(24, Math.min(CONFIG.worldHeight - H - 24, value.originY + next.y - value.start.y));
       setDrag({ ...value });
-      game.dragPreview({ cardId: value.cardId, x: value.x, y: value.y, split: value.split, takeAbove: value.takeAbove });
       const target = document.elementsFromPoint(event.clientX, event.clientY).map((element) => element.closest('[data-drop-zone]')).find(Boolean);
-      setHighlight(target?.dataset.dropZone === 'shop' ? `shop:${target.dataset.packId}` : target?.dataset.dropZone || null);
+      setHighlight(target?.dataset.dropZone === 'gift' ? `gift:${target.dataset.playerId}` : target?.dataset.dropZone === 'shop' ? `shop:${target.dataset.packId}` : target?.dataset.dropZone || null);
     };
     const finish = async (event) => {
       panRef.current = null;
@@ -262,7 +262,7 @@ export default function App() {
       if (!value) return;
       dragRef.current = null; setHighlight(null);
       if (!value.moved) {
-        setDrag(null); game.send({ type: 'drag-end', cardId: value.cardId });
+        setDrag(null);
         activateCard(value.card);
         return;
       }
@@ -278,15 +278,23 @@ export default function App() {
         targetId = overlappingTarget(rect, targets, value.ids);
       }
       try {
-        if (value.harvest) await execute({ type: 'harvest', cardId: value.cardId, x: value.x, y: value.y }, 'Zehn frische Beeren geerntet.');
+        if (zone === 'gift') {
+          if (!game.worldRef.current?.cards.some((card) => card.type === 'town_hall')) { game.notify('Du brauchst ein Rathaus, um Geschenke zu verschicken.', 'error'); return; }
+          if (value.harvest) { game.notify('Ernte die Beeren zuerst, bevor du sie verschenkst.', 'error'); return; }
+          try {
+            const result = await game.sendGift(zoneElement.dataset.playerId, { cardId: value.cardId, split: value.split, takeAbove: value.takeAbove });
+            game.notify(result?.message || 'Geschenk verschickt.');
+          } catch (err) { game.notify(err.message || 'Das Geschenk konnte nicht verschickt werden.', 'error'); }
+        }
+        else if (value.harvest) await execute({ type: 'harvest', cardId: value.cardId, x: value.x, y: value.y }, 'Zehn frische Beeren geerntet.');
         else await execute({ type: 'move', cardId: value.cardId, x: value.x, y: value.y, split: value.split, takeAbove: value.takeAbove, ...(targetId ? { targetId } : {}), ...(zone ? { zone, ...(zone === 'shop' ? { packId: zoneElement.dataset.packId } : {}) } : {}) }, zone === 'shop' ? 'Gold eingezahlt.' : zone === 'open' ? 'Neue Karten entdeckt.' : zone === 'sell' ? 'Karten gegen Gold verkauft.' : null);
       } catch { /* Error is displayed by execute. */ }
-      finally { game.send({ type: 'drag-end', cardId: value.cardId }); setDrag(null); }
+      finally { setDrag(null); }
     };
-    const cancel = () => { const value = dragRef.current; if (value) game.send({ type: 'drag-end', cardId: value.cardId }); dragRef.current = null; panRef.current = null; setDrag(null); setHighlight(null); };
+    const cancel = () => { dragRef.current = null; panRef.current = null; setDrag(null); setHighlight(null); };
     window.addEventListener('pointermove', move); window.addEventListener('pointerup', finish); window.addEventListener('pointercancel', cancel); window.addEventListener('blur', cancel);
     return () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', finish); window.removeEventListener('pointercancel', cancel); window.removeEventListener('blur', cancel); };
-  }, [point, execute, activateCard, game.dragPreview, game.send, zoom]);
+  }, [point, execute, activateCard, game.sendGift, game.notify, game.worldRef, zoom]);
 
   const center = () => {
     const human = cards.find((c) => c.ownerId === player?.id) || cards[0];
@@ -297,42 +305,40 @@ export default function App() {
   const showInspect = useCallback((card) => { if (Date.now() - suppressClick.current > 200) setDialog(card); }, []);
   const previewFor = (card) => {
     if (drag?.ids.includes(card.id)) return { x: drag.x, y: drag.y, itemOffset: drag.itemOffsets[card.id] || 0 };
-    const remote = Object.values(game.previews).find((entry) => entry.cardId === card.id || entry.cardIds?.includes(card.id) || (!entry.split && cards.find((item) => item.id === entry.cardId)?.stackId === card.stackId));
-    const selected = remote && cards.find((item) => item.id === remote.cardId);
-    return remote && Date.now() - remote.receivedAt < 12000 ? { ...remote, baseOrder: card.equippedTo ? 0 : remote.split ? selected?.order || 0 : 0 } : null;
+    return null;
   };
 
   return <CatalogArtProvider value={CARD_TYPES}><div className="app">
     <header className="topbar"><a className="brand" href="#" onClick={(event) => { event.preventDefault(); if (!settingsOpen) center(); }} aria-label="StackFriends – zur eigenen Karte"><span className="brand-mark"><Leaf size={25} strokeWidth={1.5} /></span><span><strong>Stack<span>Friends</span></strong><small>GEMEINSAM WÄCHST ETWAS</small></span></a>
-      <div className="header-right"><span className={`connection-status ${connected ? 'is-online' : ''}`} title={game.mode === 'cloud' ? 'Mit MongoDB verbunden' : 'Gemeinsame lokale Testwelt'}><i />{connected ? 'Welt verbunden' : game.status === 'paused' ? 'Verbindung pausiert' : game.status === 'offline' ? 'Offline' : game.status === 'reconnecting' ? 'Verbinde erneut …' : player ? 'Verbinde …' : 'Eine gemeinsame Welt'}</span><div className="header-divider" /><div className="online-badge"><div className="avatar-group">{game.online.slice(0, 3).map((person, i) => <span className="avatar" key={person.id || i} title={person.name}>{person.name?.slice(0, 1).toUpperCase() || '?'}</span>)}</div><Users size={16} /><span>{game.online.length || (player ? 1 : 0)} am Tisch</span></div>{player && <a className={`help-button settings-link ${settingsOpen ? 'is-active' : ''}`} href="#settings" aria-current={settingsOpen ? 'page' : undefined}><Settings size={17} /><span>Einstellungen</span></a>}<button className="help-button" onClick={() => setDialog('help')}><BookOpen size={17} /><span>Spielhilfe</span></button>{player && <span className="player-chip">{player.name}</span>}</div>
+      <div className="header-right"><span className={`connection-status save-status ${connected && game.saveStatus !== 'error' ? 'is-online' : ''} ${game.saveStatus === 'error' ? 'is-error' : ''} ${game.saveStatus === 'saving' ? 'is-saving' : ''}`} title={saveTitle} role="status"><i />{saveLabel}</span><div className="header-divider" /><span className="personal-world-badge"><Leaf size={15} />Persönliche Welt</span>{player && <a className={`help-button settings-link ${settingsOpen ? 'is-active' : ''}`} href="#settings" aria-current={settingsOpen ? 'page' : undefined}><Settings size={17} /><span>Einstellungen</span></a>}<button className="help-button" onClick={() => setDialog('help')}><BookOpen size={17} /><span>Spielhilfe</span></button>{player && <span className="player-chip">{player.name}</span>}</div>
     </header>
     {player && settingsVisited && <div style={settingsOpen ? { display: 'contents' } : { display: 'none' }}><SettingsPage world={world} onSave={async (catalog, baseCatalogRevision) => { await execute({ type: 'catalog-save', catalog, baseCatalogRevision }, 'Einstellungen für alle gespeichert.'); return getCatalog(game.worldRef.current); }} onClose={() => { location.hash = ''; }} /></div>}
     <main className="workspace" style={settingsOpen && player ? { display: 'none' } : undefined}>
-      <section className="board-shell" aria-label="Gemeinsames Spielfeld">
-        <div className="board-toolbar"><div><span className="eyebrow">UNSERE WELT</span><h1>Die Lichtung <span>V.01</span></h1></div><div className="world-stats"><span><Coins size={16} />{gold + storedGold}<small>Gold</small></span><span><Users size={16} />{humanCount}<small>Bewohner</small></span><div className="zoom-controls"><button onClick={() => setZoom((z) => Math.max(0.55, +(z - 0.15).toFixed(2)))} title="Verkleinern" aria-label="Verkleinern"><Minus size={15} /></button><span>{Math.round(zoom * 100)}%</span><button onClick={() => setZoom((z) => Math.min(1.45, +(z + 0.15).toFixed(2)))} title="Vergrößern" aria-label="Vergrößern"><Plus size={15} /></button><button onClick={center} title="Zu meiner Karte" aria-label="Zu meiner Karte"><Maximize2 size={15} /></button></div></div></div>
-        {showReconnect && <div className="connection-banner"><WifiOff size={15} /> Verbindung wird wiederhergestellt. Dein Spielstand bleibt erhalten.</div>}
+      <section className="board-shell" aria-label="Dein persönliches Spielfeld">
+        <div className="board-toolbar"><div><span className="eyebrow">DEINE WELT</span><h1>Die Lichtung <span>V.01</span></h1></div><div className="world-stats"><span><Coins size={16} />{gold + storedGold}<small>Gold</small></span><span><Users size={16} />{humanCount}<small>Bewohner</small></span><div className="zoom-controls"><button onClick={() => setZoom((z) => Math.max(0.55, +(z - 0.15).toFixed(2)))} title="Verkleinern" aria-label="Verkleinern"><Minus size={15} /></button><span>{Math.round(zoom * 100)}%</span><button onClick={() => setZoom((z) => Math.min(1.45, +(z + 0.15).toFixed(2)))} title="Vergrößern" aria-label="Vergrößern"><Plus size={15} /></button><button onClick={center} title="Zu meiner Karte" aria-label="Zu meiner Karte"><Maximize2 size={15} /></button></div></div></div>
         <div className="viewport" ref={viewport} onPointerDown={pan} aria-label="Spielwelt, Freifläche zum Verschieben ziehen"><div style={{ width: CONFIG.worldWidth * zoom, height: CONFIG.worldHeight * zoom }}><div className="world" ref={canvas} style={{ width: CONFIG.worldWidth, height: CONFIG.worldHeight, transform: `scale(${zoom})` }}>
           <div className="table-watermark"><Leaf size={24} /><span>Platz für neue Geschichten.</span></div>
           <CombatOverlay world={world} offset={game.offset.current} />
-          {cards.filter((card) => !card.equippedTo || drag?.cardId === card.id || Object.values(game.previews).some((preview) => preview.cardId === card.id)).map((card) => {
+          {cards.filter((card) => !card.equippedTo || drag?.cardId === card.id).map((card) => {
             const stack = card.equippedTo ? [card] : cards.filter((c) => c.stackId === card.stackId && !c.equippedTo).sort((a, b) => a.order - b.order);
             const index = stack.findIndex((c) => c.id === card.id);
             const job = world.jobs.find((item) => item.cardIds?.includes(card.id)) || (index === stack.length - 1 ? world.jobs.find((item) => item.kind === 'source' && cards.find((source) => source.id === item.sourceId)?.stackId === card.stackId) : null);
             const combat = world.combats.find((item) => combatHumanIds(item).includes(card.id) || combatEnemyIds(item).includes(card.id));
-            const lock = Object.values(game.locks).find((item) => (item.cardId === card.id || item.cardIds?.includes(card.id)) && item.playerId !== player?.id);
-            const tool = cards.find((c) => c.id === card.toolId && drag?.cardId !== c.id && !Object.values(game.previews).some((entry) => entry.cardId === c.id));
-            return <GameCard key={card.id} card={card} world={world} job={job} combat={combat} own={card.ownerId === player?.id} index={index} count={stack.length} preview={previewFor(card)} dragging={Boolean(drag?.ids.includes(card.id))} locked={Boolean(lock)} offset={game.offset.current} onPointerDown={startDrag} onInspect={showInspect} onActivate={activateCard} tool={tool} />;
+            const tool = cards.find((c) => c.id === card.toolId && drag?.cardId !== c.id);
+            return <GameCard key={card.id} card={card} world={world} job={job} combat={combat} own={card.ownerId === player?.id} index={index} count={stack.length} preview={previewFor(card)} dragging={Boolean(drag?.ids.includes(card.id))} offset={game.offset.current} onPointerDown={startDrag} onInspect={showInspect} onActivate={activateCard} tool={tool} />;
           })}
         </div></div></div>
         {player && cards.length <= 10 && <div className="empty-note"><span className="note-number">01</span><p>Ein Anfang voller Möglichkeiten.<br /><strong>Ziehe Gold zum Basicpaket – einzeln oder als Stapel.</strong></p><ArrowUpRight size={21} /></div>}
         <div className="board-footer"><div className="board-caption"><MousePointer2 size={15} /><span>Karte + alle darüber ziehen <i>·</i> Am Namen teilen</span></div><div className="board-dropzones"><div className={`drop-zone open-zone ${highlight === 'open' ? 'zone-highlight' : ''}`} data-drop-zone="open"><PackageOpen size={22} /><span>Paket öffnen<small>Ablegen: alle übrigen Karten</small></span><ArrowDownToLine size={16} /></div><div className={`drop-zone sell-zone ${highlight === 'sell' ? 'zone-highlight' : ''}`} data-drop-zone="sell"><Coins size={22} /><span>Verkaufen<small>Karten gegen Gold</small></span><ArrowDownToLine size={16} /></div></div></div>
       </section>
-      <aside className="sidebar" aria-label="Pakete und Rezepte">
+      <aside className="sidebar" aria-label="Mitspieler, Pakete und Rezepte">
+        {player && (hasTownHall && friendsOpen ? <FriendsPanel key={player.id} playerId={player.id} definitions={CARD_TYPES} listPlayers={game.listPlayers} inspectPlayer={game.inspectPlayer} onlinePlayers={game.onlinePlayers} onClose={() => setFriendsOpen(false)} highlightedPlayerId={highlight?.startsWith('gift:') ? highlight.slice(5) : null} dragging={Boolean(drag)} /> : <div className="town-hall-hint"><Users size={15} /><p>{hasTownHall ? 'Klicke auf dein Rathaus, um Mitspieler und ihre Materialien anzusehen oder Karten zu verschenken.' : 'Baue mit deinem Menschen ein Rathaus aus 100 Steinen, um Mitspieler zu sehen und Karten zu verschenken.'}</p></div>)}
         <PackShop packs={packs} definitions={CARD_TYPES} payments={world?.shopPayments} legacyPaid={world?.shopPaid} highlightedPackId={highlight?.startsWith('shop:') ? highlight.slice(5) : null} />
         <RecipeBook recipes={RECIPES} definitions={CARD_TYPES} expanded={expandedRecipe} onExpand={setExpandedRecipe} />
         <footer className="sidebar-footer"><span><Leaf size={13} /> Zusammen geht mehr.</span><small>STACKFRIENDS · V1</small></footer>
       </aside>
     </main>
+    {drag && highlight?.startsWith('gift:') && <div className="gift-drag-ghost" style={{ left: Math.max(8, Math.min(drag.clientX + 14, window.innerWidth - 220)), top: Math.max(8, Math.min(drag.clientY + 14, window.innerHeight - 70)) }} aria-hidden="true"><span className="gift-drag-art"><CardArt type={drag.card.type} /></span><span><strong>{drag.ids.length > 1 ? `${drag.ids.length} Karten verschenken` : (drag.card.name || drag.card.packName || CARD_TYPES[drag.card.type]?.name)}</strong><small>Loslassen zum Verschenken</small></span></div>}
     {game.status === 'offline' && <div className="connection-banner"><WifiOff size={15} /> Du bist offline. Sobald dein Internet zurück ist, geht es weiter.</div>}
     {(!game.loaded || !player) && <Welcome onJoin={game.join} status={game.status} error={game.error} onRetry={game.reload} />}
     {dialog === 'help' && <Help onClose={closeDialog} />}

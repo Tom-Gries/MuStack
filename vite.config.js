@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
     port: 5173,
     strictPort: true,
     fs: { deny: ['.env', '.env.*', '*.env', '**/.git/**', '**/.data/**', '**/backend/**'] },
-    proxy: { '/api': { target: env.DEV_BACKEND_URL || 'http://127.0.0.1:3001', ws: true } },
+    proxy: { '/api': { target: env.DEV_BACKEND_URL || 'http://127.0.0.1:3001' } },
   },
   };
 });

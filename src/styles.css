@@ -985,3 +985,90 @@ h1, h2, h3 { font-weight: 500; }
   .sidebar-footer > span { font-size: 8px; }
   .sidebar-footer > small { font-size: 5px; letter-spacing: 1px; }
 }
+
+/* Personal worlds share gifts through the player list. */
+.personal-world-badge { display: inline-flex; align-items: center; gap: 7px; font-size: 10px; color: #7c8c6c; white-space: nowrap; }
+.save-status.is-saving i { background: #c49b4a; box-shadow: 0 0 0 3px #c49b4a18; }
+.save-status.is-error { color: #aa674d; }
+.save-status.is-error i { background: #ba7656; }
+.friends-panel { position: sticky; top: 0; z-index: 24; flex: none; background: #f5f5e9; border-bottom: 1px solid #d5dcc7; box-shadow: 0 5px 14px #334c3907; }
+.friends-heading { display: flex; align-items: center; padding: 17px 20px 13px; gap: 8px; }
+.friends-title { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.friends-title > svg { color: #7f936b; }
+.friends-title h2 { flex: 1; font-family: var(--serif); font-size: 19px; }
+.friends-title small { display: block; margin-top: 4px; font: 8px/1.5 Inter, ui-sans-serif, sans-serif; color: #8b987b; }
+.friends-refresh, .friends-close { width: 27px; height: 27px; border-color: #d9dfcc; background: #fbfaf2; flex-shrink: 0; }
+.friends-refresh.is-loading svg { animation: spin 1s linear infinite; }
+.friends-content { max-height: min(420px, calc(100dvh - 190px)); overflow-y: auto; padding: 0 20px 18px; scrollbar-width: thin; scrollbar-color: #c9d2ba transparent; }
+.friends-intro { display: flex; gap: 8px; align-items: flex-start; color: #8a987a; font-size: 8px; line-height: 1.7; }
+.friends-intro svg { margin-top: 2px; }
+.town-hall-hint { display: flex; align-items: flex-start; gap: 9px; padding: 18px 20px; border-bottom: 1px solid #dce2ce; color: #8a987a; font-size: 9px; line-height: 1.7; }
+.town-hall-hint > svg { margin-top: 2px; }
+.friends-message, .friends-error { margin-top: 12px; font-size: 9px; line-height: 1.7; color: #859474; }
+.friends-error { color: #ac6b51; overflow-wrap: anywhere; }
+.friends-list { display: grid; gap: 5px; margin-top: 13px; }
+.friend-row { display: flex; align-items: center; gap: 9px; min-height: 49px; width: 100%; padding: 8px 10px; text-align: left; border: 1px solid #dce2ce; border-radius: 7px; background: #fbfaf2; }
+.friend-row:hover, .friend-row.is-selected { background: #edf1e2; border-color: #c3d0b1; }
+.friend-avatar { position: relative; display: grid; place-items: center; flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: #e3e9d6; font-size: 10px; font-weight: 600; color: #728461; }
+.friend-avatar.is-online::after { position: absolute; content: ''; width: 7px; height: 7px; right: -1px; bottom: 0; border: 2px solid #fbfaf2; border-radius: 50%; background: #73965c; }
+.friend-name { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 11px; line-height: 1.3; }
+.friend-name small { display: block; margin-top: 3px; color: #99a48c; font-size: 7px; }
+.friend-drop-icon { color: #a9b598; }
+.friends-panel.is-dragging .friend-row { border-style: dashed; border-color: #b4c49f; }
+.friends-panel .friend-row.is-gift-target { background: #dfeacb; border: 1px solid #7d9d5c; box-shadow: 0 0 0 3px #7d9d5c20; }
+.friend-row.is-gift-target .friend-name small, .friend-row.is-gift-target .friend-drop-icon { color: #638347; }
+.friend-materials { margin-top: 15px; padding-top: 13px; border-top: 1px solid #dce2cd; }
+.friend-materials-heading strong { display: block; overflow-wrap: anywhere; font-size: 11px; font-weight: 500; }
+.friend-materials-heading small { display: block; margin-top: 6px; color: #95a087; font-size: 7px; line-height: 1.6; }
+.friend-materials-heading time { display: block; }
+.friend-materials-list { display: grid; gap: 5px; padding: 0; margin: 10px 0 0; list-style: none; }
+.friend-materials-list li { display: flex; align-items: center; gap: 8px; min-height: 30px; font-size: 9px; color: #7c8d6b; }
+.friend-material-art { display: grid; place-items: center; flex-shrink: 0; width: 30px; height: 30px; padding: 2px; border: 1px solid #dee4cf; border-radius: 5px; background: #faf9ee; }
+.friend-material-art > svg, .friend-material-art > img { width: 100%; height: 100%; object-fit: contain; }
+.friend-materials-list li > span:nth-child(2) { flex: 1; }
+.friend-materials-list li > strong { font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.friends-notifications { margin-top: 12px; }
+.gift-drag-ghost { position: fixed; z-index: 1000; display: flex; align-items: center; gap: 9px; max-width: 210px; padding: 9px 12px 9px 8px; pointer-events: none; border: 1px solid #90a478; border-radius: 9px; color: #557145; background: #f9faed; box-shadow: 0 8px 24px #334c3930; }
+.gift-drag-art { display: block; width: 35px; height: 35px; flex-shrink: 0; }
+.gift-drag-art > img, .gift-drag-art > svg { width: 100%; height: 100%; object-fit: contain; }
+.gift-drag-ghost strong { display: block; font-size: 10px; font-weight: 500; line-height: 1.4; }
+.gift-drag-ghost small { display: block; margin-top: 3px; font-size: 8px; color: #90a07f; }
+
+@media (max-width: 1050px) {
+  .personal-world-badge { display: none; }
+  .friends-heading { padding: 15px 16px 11px; }
+  .friends-content { padding-left: 16px; padding-right: 16px; }
+  .town-hall-hint { padding-left: 16px; padding-right: 16px; }
+}
+@media (max-width: 800px) {
+  .connection-status.save-status { display: inline-flex; font-size: 8px; gap: 5px; }
+  .friends-title h2 { font-size: 17px; }
+  .friends-title { gap: 8px; }
+  .friend-row { padding: 8px; gap: 7px; }
+  .friend-name { font-size: 10px; }
+}
+@media (max-height: 540px) and (orientation: landscape) {
+  .friends-content { max-height: calc(100dvh - 155px); }
+  .friends-heading { padding-top: 12px; padding-bottom: 10px; }
+}
+@media (max-width: 560px) and (orientation: portrait) {
+  .header-right { gap: 6px; }
+  .connection-status.save-status { max-width: 70px; white-space: normal; font-size: 7px; line-height: 1.4; }
+  .friends-heading { padding: 13px 10px 10px; gap: 4px; }
+  .friends-title { gap: 6px; }
+  .friends-title h2 { font-size: 15px; }
+  .friends-title > svg { width: 14px; }
+  .friends-title small { font-size: 6px; }
+  .friends-refresh, .friends-close { width: 23px; height: 23px; }
+  .friends-content { padding: 0 10px 13px; max-height: min(350px, calc(100dvh - 190px)); }
+  .town-hall-hint { padding: 13px 10px; font-size: 7px; gap: 6px; }
+  .town-hall-hint > svg { width: 12px; }
+  .friends-intro { font-size: 7px; gap: 6px; }
+  .friends-intro > svg { width: 12px; }
+  .friend-row { padding: 7px 6px; gap: 6px; }
+  .friend-avatar { width: 23px; height: 23px; font-size: 9px; }
+  .friend-drop-icon { width: 12px; }
+  .friend-name { font-size: 9px; }
+  .friend-name small { font-size: 6px; }
+  .friend-materials-heading strong { font-size: 9px; }
+}
