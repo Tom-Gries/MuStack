@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { BookOpen, ChevronRight, Clock3, Users } from 'lucide-react';
 import CardArt from './GameArt.jsx';
 
 const duration = (ms) => ms >= 3600000 ? `${Number((ms / 3600000).toFixed(1))} Stunden` : ms >= 60000 ? `${Number((ms / 60000).toFixed(1))} Minuten` : `${ms / 1000} Sekunden`;
 
-export default function RecipeBook({ recipes, definitions, expanded, onExpand }) {
+function RecipeBook({ recipes, definitions, expanded, onExpand }) {
   return <section className="recipes-panel">
     <div className="section-label"><span>ETWAS ERSCHAFFEN</span><BookOpen size={14} /></div>
     <h2>Aus Karten wird mehr.</h2><p className="recipes-intro">Passende Karten stapeln. Los geht’s.</p>
@@ -24,3 +24,5 @@ export default function RecipeBook({ recipes, definitions, expanded, onExpand })
     {!recipes.length && <p className="recipes-intro">In den Einstellungen könnt ihr eure erste Kombination anlegen.</p>}
   </section>;
 }
+
+export default memo(RecipeBook);

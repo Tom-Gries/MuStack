@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDownToLine, ArrowUpRight, BookOpen, Check, Coins, Hand, Heart, Leaf, Maximize2, Minus, MousePointer2, PackageOpen, Plus, RefreshCw, Settings, Sprout, Users, WifiOff, X } from 'lucide-react';
 import { CONFIG, getCardTypes, getCatalog, getPacks, getRecipes } from '@stackfriends/shared/catalog.js';
 import { combatEnemyIds, combatHumanIds } from '@stackfriends/shared/combat.js';
@@ -15,6 +15,7 @@ import { creatureProfile } from '@stackfriends/shared/creatures.js';
 const W = CONFIG.cardWidth;
 const H = CONFIG.cardHeight;
 const STACK = CONFIG.stackOffset;
+const MemoSettingsPage = memo(SettingsPage);
 const shortTime = (ms) => {
   const seconds = Math.max(0, Math.ceil(ms / 1000));
   if (seconds >= 3600) return `${Math.floor(seconds / 3600)}h ${Math.floor(seconds % 3600 / 60)}m`;
@@ -41,9 +42,8 @@ function realPosition(card, world, now, offset) {
   return { x: m.fromX + (m.toX - m.fromX) * amount, y: m.fromY + (m.toY - m.fromY) * amount };
 }
 
-const GameCard = memo(function GameCard({ card, world, job, combat, own, index, count, preview, dragging, locked, offset, onPointerDown, onInspect, onActivate, tool }) {
+const GameCard = memo(function GameCard({ card, world, job, combat, own, index, count, motionAnchor, preview, dragging, locked, offset, onPointerDown, onInspect, onActivate, tool }) {
   const CARD_TYPES = getCardTypes(world);
-  const motionAnchor = world.cards.find((item) => item.stackId === card.stackId && item.motion);
   const now = useNow(Boolean(motionAnchor || job || card.type === 'field'), Boolean(motionAnchor));
   const definition = CARD_TYPES[card.type];
   const creature = creatureProfile(world, card);
@@ -157,6 +157,7 @@ export default function App() {
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [expandedRecipe, setExpandedRecipe] = useState(null);
   const dragRef = useRef(null);
+  const nextGestureId = useRef(0);
   const panRef = useRef(null);
   const viewport = useRef(null);
   const canvas = useRef(null);
@@ -171,6 +172,30 @@ export default function App() {
   const savedAt = game.lastSavedAt && new Date(game.lastSavedAt);
   const saveTitle = savedAt && Number.isFinite(savedAt.getTime()) ? `Zuletzt gespeichert: ${savedAt.toLocaleString('de-DE')}` : 'Deine Welt wird automatisch gespeichert.';
   const cards = world?.cards || [];
+  const board = useMemo(() => {
+    const byId = new Map(cards.map((card) => [card.id, card]));
+    const stacks = new Map(), indices = new Map(), motions = new Map();
+    for (const card of cards) {
+      if (card.motion && !motions.has(card.stackId)) motions.set(card.stackId, card);
+      if (card.equippedTo) continue;
+      const stack = stacks.get(card.stackId) || [];
+      stack.push(card); stacks.set(card.stackId, stack);
+    }
+    for (const stack of stacks.values()) {
+      stack.sort((a, b) => a.order - b.order);
+      stack.forEach((card, index) => indices.set(card.id, index));
+    }
+    const jobs = new Map(), sourceJobs = new Map(), combats = new Map();
+    for (const job of world?.jobs || []) {
+      for (const id of job.cardIds || []) if (!jobs.has(id)) jobs.set(id, job);
+      const stackId = job.kind === 'source' && byId.get(job.sourceId)?.stackId;
+      if (stackId && !sourceJobs.has(stackId)) sourceJobs.set(stackId, job);
+    }
+    for (const combat of world?.combats || []) {
+      for (const id of [...combatHumanIds(combat), ...combatEnemyIds(combat)]) if (!combats.has(id)) combats.set(id, combat);
+    }
+    return { byId, stacks, indices, motions, jobs, sourceJobs, combats };
+  }, [cards, world?.jobs, world?.combats]);
   const hasTownHall = cards.some((card) => card.type === 'town_hall');
   useEffect(() => { if (!hasTownHall) setFriendsOpen(false); }, [hasTownHall]);
   const gold = cards.filter((c) => c.type === 'gold').length;
@@ -205,6 +230,11 @@ export default function App() {
     if (card.type === 'piggyBank') execute({ type: 'withdraw', cardId: card.id }).catch(() => {});
     if (card.type === 'pack') execute({ type: 'open-pack', cardId: card.id }).catch(() => {});
   }, [execute]);
+  const saveCatalog = useCallback(async (catalog, baseCatalogRevision) => {
+    await execute({ type: 'catalog-save', catalog, baseCatalogRevision }, 'Einstellungen für alle gespeichert.');
+    return getCatalog(game.worldRef.current);
+  }, [execute, game.worldRef]);
+  const closeSettings = useCallback(() => { location.hash = ''; }, []);
   useEffect(() => {
     if (settingsOpen || cameraInitialized.current || !world || !player || !viewport.current) return;
     const width = viewport.current.clientWidth;
@@ -233,19 +263,20 @@ export default function App() {
     if (toolId) { const rect = event.target.closest('[data-tool-id]').getBoundingClientRect(); const board = canvas.current.getBoundingClientRect(); position = { x: (rect.left - board.left) / zoom, y: (rect.top - board.top) / zoom }; }
     const ids = dragSelection(cards, card.id, split, takeAbove);
     const itemOffsets = Object.fromEntries(cards.filter((item) => ids.includes(item.id)).map((item) => [item.id, card.equippedTo ? 0 : item.order - card.order]));
-    const value = { cardId: card.id, card, split, takeAbove, ids, itemOffsets, x: position.x, y: position.y + (split && !card.equippedTo ? card.order * STACK : 0), originX: position.x, originY: position.y + (split && !card.equippedTo ? card.order * STACK : 0), start: origin, clientX: event.clientX, clientY: event.clientY, moved: false, harvest: Boolean(event.target.closest('[data-harvest]')) };
+    const value = { gestureId: ++nextGestureId.current, pointerId: event.pointerId, cardId: card.id, card, split, takeAbove, ids, itemOffsets, x: position.x, y: position.y + (split && !card.equippedTo ? card.order * STACK : 0), originX: position.x, originY: position.y + (split && !card.equippedTo ? card.order * STACK : 0), start: origin, clientX: event.clientX, clientY: event.clientY, moved: false, harvest: Boolean(event.target.closest('[data-harvest]')) };
     dragRef.current = value;
     event.currentTarget.setPointerCapture?.(event.pointerId);
   }, [connected, cards, world, game.offset, point, zoom]);
 
   useEffect(() => {
-    const move = (event) => {
+    let frame = null, latestPointer = null;
+    const updatePointer = (event) => {
       if (panRef.current) {
         viewport.current.scrollLeft = panRef.current.scrollLeft - (event.clientX - panRef.current.x);
         viewport.current.scrollTop = panRef.current.scrollTop - (event.clientY - panRef.current.y);
       }
       const value = dragRef.current;
-      if (!value) return;
+      if (!value || event.pointerId !== value.pointerId) return;
       const next = point(event);
       if (!value.moved && Math.hypot(event.clientX - value.clientX, event.clientY - value.clientY) < 5) return;
       value.moved = true;
@@ -256,13 +287,27 @@ export default function App() {
       const target = document.elementsFromPoint(event.clientX, event.clientY).map((element) => element.closest('[data-drop-zone]')).find(Boolean);
       setHighlight(target?.dataset.dropZone === 'gift' ? `gift:${target.dataset.playerId}` : target?.dataset.dropZone === 'shop' ? `shop:${target.dataset.packId}` : target?.dataset.dropZone || null);
     };
+    const move = (event) => {
+      latestPointer = { clientX: event.clientX, clientY: event.clientY, pointerId: event.pointerId };
+      if (frame !== null) return;
+      frame = requestAnimationFrame(() => {
+        frame = null;
+        const pointer = latestPointer; latestPointer = null;
+        if (pointer) updatePointer(pointer);
+      });
+    };
     const finish = async (event) => {
+      if (frame !== null) cancelAnimationFrame(frame);
+      frame = null; latestPointer = null;
+      // A fast release may happen before the scheduled frame: use its actual position.
+      updatePointer(event);
       panRef.current = null;
       const value = dragRef.current;
-      if (!value) return;
+      if (!value || event.pointerId !== value.pointerId) return;
       dragRef.current = null; setHighlight(null);
+      const clearGesture = () => setDrag((current) => current?.gestureId === value.gestureId ? null : current);
       if (!value.moved) {
-        setDrag(null);
+        clearGesture();
         activateCard(value.card);
         return;
       }
@@ -287,13 +332,18 @@ export default function App() {
           } catch (err) { game.notify(err.message || 'Das Geschenk konnte nicht verschickt werden.', 'error'); }
         }
         else if (value.harvest) await execute({ type: 'harvest', cardId: value.cardId, x: value.x, y: value.y }, 'Zehn frische Beeren geerntet.');
-        else await execute({ type: 'move', cardId: value.cardId, x: value.x, y: value.y, split: value.split, takeAbove: value.takeAbove, ...(targetId ? { targetId } : {}), ...(zone ? { zone, ...(zone === 'shop' ? { packId: zoneElement.dataset.packId } : {}) } : {}) }, zone === 'shop' ? 'Gold eingezahlt.' : zone === 'open' ? 'Neue Karten entdeckt.' : zone === 'sell' ? 'Karten gegen Gold verkauft.' : null);
+        else {
+          const completion = execute({ type: 'move', cardId: value.cardId, x: value.x, y: value.y, split: value.split, takeAbove: value.takeAbove, ...(targetId ? { targetId } : {}), ...(zone ? { zone, ...(zone === 'shop' ? { packId: zoneElement.dataset.packId } : {}) } : {}) }, zone === 'shop' ? 'Gold eingezahlt.' : zone === 'open' ? 'Neue Karten entdeckt.' : zone === 'sell' ? 'Karten gegen Gold verkauft.' : null);
+          // Ordinary moves already have a local projection; release the pointer immediately.
+          if (!zone) clearGesture();
+          await completion;
+        }
       } catch { /* Error is displayed by execute. */ }
-      finally { setDrag(null); }
+      finally { clearGesture(); }
     };
-    const cancel = () => { dragRef.current = null; panRef.current = null; setDrag(null); setHighlight(null); };
+    const cancel = () => { if (frame !== null) cancelAnimationFrame(frame); frame = null; latestPointer = null; dragRef.current = null; panRef.current = null; setDrag(null); setHighlight(null); };
     window.addEventListener('pointermove', move); window.addEventListener('pointerup', finish); window.addEventListener('pointercancel', cancel); window.addEventListener('blur', cancel);
-    return () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', finish); window.removeEventListener('pointercancel', cancel); window.removeEventListener('blur', cancel); };
+    return () => { if (frame !== null) cancelAnimationFrame(frame); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', finish); window.removeEventListener('pointercancel', cancel); window.removeEventListener('blur', cancel); };
   }, [point, execute, activateCard, game.sendGift, game.notify, game.worldRef, zoom]);
 
   const center = () => {
@@ -312,7 +362,7 @@ export default function App() {
     <header className="topbar"><a className="brand" href="#" onClick={(event) => { event.preventDefault(); if (!settingsOpen) center(); }} aria-label="StackFriends – zur eigenen Karte"><span className="brand-mark"><Leaf size={25} strokeWidth={1.5} /></span><span><strong>Stack<span>Friends</span></strong><small>GEMEINSAM WÄCHST ETWAS</small></span></a>
       <div className="header-right"><span className={`connection-status save-status ${connected && game.saveStatus !== 'error' ? 'is-online' : ''} ${game.saveStatus === 'error' ? 'is-error' : ''} ${game.saveStatus === 'saving' ? 'is-saving' : ''}`} title={saveTitle} role="status"><i />{saveLabel}</span><div className="header-divider" /><span className="personal-world-badge"><Leaf size={15} />Persönliche Welt</span>{player && <a className={`help-button settings-link ${settingsOpen ? 'is-active' : ''}`} href="#settings" aria-current={settingsOpen ? 'page' : undefined}><Settings size={17} /><span>Einstellungen</span></a>}<button className="help-button" onClick={() => setDialog('help')}><BookOpen size={17} /><span>Spielhilfe</span></button>{player && <span className="player-chip">{player.name}</span>}</div>
     </header>
-    {player && settingsVisited && <div style={settingsOpen ? { display: 'contents' } : { display: 'none' }}><SettingsPage world={world} onSave={async (catalog, baseCatalogRevision) => { await execute({ type: 'catalog-save', catalog, baseCatalogRevision }, 'Einstellungen für alle gespeichert.'); return getCatalog(game.worldRef.current); }} onClose={() => { location.hash = ''; }} /></div>}
+    {player && settingsVisited && <div style={settingsOpen ? { display: 'contents' } : { display: 'none' }}><MemoSettingsPage world={world} onSave={saveCatalog} onClose={closeSettings} /></div>}
     <main className="workspace" style={settingsOpen && player ? { display: 'none' } : undefined}>
       <section className="board-shell" aria-label="Dein persönliches Spielfeld">
         <div className="board-toolbar"><div><span className="eyebrow">DEINE WELT</span><h1>Die Lichtung <span>V.01</span></h1></div><div className="world-stats"><span><Coins size={16} />{gold + storedGold}<small>Gold</small></span><span><Users size={16} />{humanCount}<small>Bewohner</small></span><div className="zoom-controls"><button onClick={() => setZoom((z) => Math.max(0.55, +(z - 0.15).toFixed(2)))} title="Verkleinern" aria-label="Verkleinern"><Minus size={15} /></button><span>{Math.round(zoom * 100)}%</span><button onClick={() => setZoom((z) => Math.min(1.45, +(z + 0.15).toFixed(2)))} title="Vergrößern" aria-label="Vergrößern"><Plus size={15} /></button><button onClick={center} title="Zu meiner Karte" aria-label="Zu meiner Karte"><Maximize2 size={15} /></button></div></div></div>
@@ -320,12 +370,12 @@ export default function App() {
           <div className="table-watermark"><Leaf size={24} /><span>Platz für neue Geschichten.</span></div>
           <CombatOverlay world={world} offset={game.offset.current} />
           {cards.filter((card) => !card.equippedTo || drag?.cardId === card.id).map((card) => {
-            const stack = card.equippedTo ? [card] : cards.filter((c) => c.stackId === card.stackId && !c.equippedTo).sort((a, b) => a.order - b.order);
-            const index = stack.findIndex((c) => c.id === card.id);
-            const job = world.jobs.find((item) => item.cardIds?.includes(card.id)) || (index === stack.length - 1 ? world.jobs.find((item) => item.kind === 'source' && cards.find((source) => source.id === item.sourceId)?.stackId === card.stackId) : null);
-            const combat = world.combats.find((item) => combatHumanIds(item).includes(card.id) || combatEnemyIds(item).includes(card.id));
-            const tool = cards.find((c) => c.id === card.toolId && drag?.cardId !== c.id);
-            return <GameCard key={card.id} card={card} world={world} job={job} combat={combat} own={card.ownerId === player?.id} index={index} count={stack.length} preview={previewFor(card)} dragging={Boolean(drag?.ids.includes(card.id))} offset={game.offset.current} onPointerDown={startDrag} onInspect={showInspect} onActivate={activateCard} tool={tool} />;
+            const stack = card.equippedTo ? [card] : board.stacks.get(card.stackId);
+            const index = card.equippedTo ? 0 : board.indices.get(card.id);
+            const job = board.jobs.get(card.id) || (index === stack.length - 1 ? board.sourceJobs.get(card.stackId) : null);
+            const combat = board.combats.get(card.id);
+            const tool = card.toolId !== drag?.cardId ? board.byId.get(card.toolId) : null;
+            return <GameCard key={card.id} card={card} world={world} job={job} combat={combat} own={card.ownerId === player?.id} index={index} count={stack.length} motionAnchor={board.motions.get(card.stackId)} preview={previewFor(card)} dragging={Boolean(drag?.ids.includes(card.id))} offset={game.offset.current} onPointerDown={startDrag} onInspect={showInspect} onActivate={activateCard} tool={tool} />;
           })}
         </div></div></div>
         {player && cards.length <= 10 && <div className="empty-note"><span className="note-number">01</span><p>Ein Anfang voller Möglichkeiten.<br /><strong>Ziehe Gold zum Basicpaket – einzeln oder als Stapel.</strong></p><ArrowUpRight size={21} /></div>}

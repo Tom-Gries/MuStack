@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { ArrowDownToLine, Coins, Package } from 'lucide-react';
 import CardArt from './GameArt.jsx';
 
@@ -28,7 +28,7 @@ function PackOffer({ pack, definitions, paid, highlighted }) {
   </section>;
 }
 
-export default function PackShop({ packs, definitions, payments, legacyPaid, highlightedPackId }) {
+function PackShop({ packs, definitions, payments, legacyPaid, highlightedPackId }) {
   return <section className="pack-shop" aria-label="Paketshop">
     <div className="section-label pack-shop-heading"><span>DIE NÄCHSTE ENTDECKUNG</span><span>{packs.length} {packs.length === 1 ? 'PAKET' : 'PAKETE'}</span></div>
     <div className="pack-shop-list">
@@ -39,3 +39,5 @@ export default function PackShop({ packs, definitions, payments, legacyPaid, hig
     {packs.length === 0 && <p className="shop-description pack-shop-empty">Noch keine Pakete verfügbar.</p>}
   </section>;
 }
+
+export default memo(PackShop);

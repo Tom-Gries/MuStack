@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { nextWakeAt } from '@stackfriends/shared/game.js';
-import { newestWorld } from './lib/world-sync.js';
+import { WorldPresentation } from './lib/world-presentation.js';
 import { newlyOnlinePlayers, nextBackgroundRequest } from './lib/personal-sync.js';
 
 async function request(path, options = {}) {
@@ -38,6 +38,8 @@ export function useGame() {
   const clientEpoch = useRef(Date.now());
   const offset = useRef(0);
   const worldRef = useRef(null);
+  const presentation = useRef(null);
+  if (!presentation.current) presentation.current = new WorldPresentation();
   const queue = useRef(Promise.resolve());
   const mounted = useRef(true);
   const toastTimers = useRef(new Set());
@@ -54,7 +56,7 @@ export function useGame() {
     if (!mounted.current) return;
     if (result.serverTime) offset.current = result.serverTime - Date.now();
     if (Object.hasOwn(result, 'world')) {
-      const next = newestWorld(worldRef.current, result.world);
+      const next = presentation.current.accept(result.world);
       if (next !== worldRef.current) { worldRef.current = next; setWorld(next); }
       if (result.world) setLastSavedAt(result.savedAt || result.lastSavedAt || result.serverTime || Date.now());
     }
@@ -82,7 +84,7 @@ export function useGame() {
     queue.current = task.catch(() => {});
     return task;
   }, []);
-  const post = useCallback((path, body, { kind = 'sync', idempotent = false } = {}) => enqueue(async () => {
+  const post = useCallback((path, body, { kind = 'sync', idempotent = false, presentationId } = {}) => enqueue(async () => {
     if (mounted.current && kind !== 'presence') setSaveStatus('saving');
     try {
       let result;
@@ -93,9 +95,16 @@ export function useGame() {
         // Retry the same operation ID: an already committed gift/action is never applied twice.
         result = await request(path, { method: 'POST', body: payload });
       }
+      if (presentationId) presentation.current.remove(presentationId);
       acceptResult(result, kind);
       return result;
     } catch (err) {
+      if (presentationId) {
+        presentation.current.remove(presentationId);
+        const next = presentation.current.view();
+        worldRef.current = next;
+        if (mounted.current) setWorld(next);
+      }
       timing.current.retryAt = Date.now() + 15_000;
       if (mounted.current) { setError(err.message); setSaveStatus('error'); setScheduleVersion((value) => value + 1); }
       throw err;
@@ -145,7 +154,7 @@ export function useGame() {
   useEffect(() => {
     if (!player?.id || !world || document.visibilityState === 'hidden' || navigator.onLine === false) return;
     const now = Date.now();
-    const deadline = nextWakeAt(world, now + offset.current);
+    const deadline = nextWakeAt(presentation.current.confirmed || world, now + offset.current);
     const next = nextBackgroundRequest({ now, ...timing.current, hasOthers: hasOtherPlayersOnline, hasPendingGifts, gameDeadline: deadline === null ? null : deadline - offset.current });
     const timer = setTimeout(() => {
       (next.kind === 'sync' ? sync() : post('/api/presence', { active: true }, { kind: 'presence' })).catch(() => {});
@@ -157,7 +166,12 @@ export function useGame() {
     setStatus('connected');
     return result;
   }, [post]);
-  const command = useCallback((value) => post('/api/command', { command: value, commandId: crypto.randomUUID() }, { idempotent: true }), [post]);
+  const command = useCallback((value) => {
+    const commandId = crypto.randomUUID();
+    const next = presentation.current.preview(commandId, value, Date.now() + offset.current);
+    if (next !== worldRef.current) { worldRef.current = next; setWorld(next); }
+    return post('/api/command', { command: value, commandId }, { idempotent: true, presentationId: commandId });
+  }, [post]);
   const sendGift = useCallback((recipientId, selection) => post('/api/gift', { recipientId, ...selection, commandId: crypto.randomUUID() }, { idempotent: true }), [post]);
   const listPlayers = useCallback(() => request('/api/players'), []);
   const inspectPlayer = useCallback((playerId) => request('/api/materials', { method: 'POST', body: JSON.stringify({ playerId }) }), []);
