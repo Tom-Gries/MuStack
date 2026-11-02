@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { nextWakeAt } from '@stackfriends/shared/game.js';
 import { WorldPresentation } from './lib/world-presentation.js';
-import { newlyOnlinePlayers, nextBackgroundRequest } from './lib/personal-sync.js';
+import { backgroundSyncDue, createSyncCoordinator, newlyOnlinePlayers, nextBackgroundRequest } from './lib/personal-sync.js';
 
 async function request(path, options = {}) {
   const response = await fetch(path, { credentials: 'same-origin', signal: AbortSignal.timeout(15_000), ...options, headers: { 'Content-Type': 'application/json', ...options.headers } });
@@ -44,6 +44,8 @@ export function useGame() {
   const mounted = useRef(true);
   const toastTimers = useRef(new Set());
   const timing = useRef({ lastSync: Date.now(), lastPresence: Date.now(), retryAt: 0, interval: 60_000 });
+  const backgroundState = useRef({ hasOthers: false, hasPendingGifts: false });
+  const activatedPlayer = useRef(null);
   const previousOnline = useRef(null);
   const notify = useCallback((message, kind = 'info') => {
     if (!message || !mounted.current) return;
@@ -62,8 +64,12 @@ export function useGame() {
     }
     if (Object.hasOwn(result, 'player')) setPlayer((current) => current?.id === result.player?.id && result.player ? { ...current, ...result.player } : result.player);
     if (result.mode) setMode(result.mode);
-    if (Object.hasOwn(result, 'hasOtherPlayersOnline')) setHasOthers(result.hasOtherPlayersOnline);
-    setHasPendingGifts(Boolean(result.hasPendingGifts));
+    if (Object.hasOwn(result, 'hasOtherPlayersOnline')) {
+      backgroundState.current.hasOthers = result.hasOtherPlayersOnline;
+      setHasOthers(result.hasOtherPlayersOnline);
+    }
+    backgroundState.current.hasPendingGifts = Boolean(result.hasPendingGifts);
+    setHasPendingGifts(backgroundState.current.hasPendingGifts);
     if (Array.isArray(result.onlinePlayers)) {
       const hasTownHall = worldRef.current?.cards.some((card) => card.type === 'town_hall');
       for (const person of newlyOnlinePlayers(previousOnline.current, result.onlinePlayers, { playerId: worldRef.current?.id, hasTownHall, visible: document.visibilityState !== 'hidden' })) notify(`${person.name} ist jetzt online.`);
@@ -84,7 +90,8 @@ export function useGame() {
     queue.current = task.catch(() => {});
     return task;
   }, []);
-  const post = useCallback((path, body, { kind = 'sync', idempotent = false, presentationId } = {}) => enqueue(async () => {
+  const post = useCallback((path, body, { kind = 'sync', idempotent = false, presentationId, shouldRequest, activatesPlayer = false } = {}) => enqueue(async () => {
+    if (shouldRequest && !shouldRequest()) return { skipped: true };
     if (mounted.current && kind !== 'presence') setSaveStatus('saving');
     try {
       let result;
@@ -96,6 +103,7 @@ export function useGame() {
         result = await request(path, { method: 'POST', body: payload });
       }
       if (presentationId) presentation.current.remove(presentationId);
+      if (activatesPlayer && result.player) activatedPlayer.current = result.player.id;
       acceptResult(result, kind);
       return result;
     } catch (err) {
@@ -110,7 +118,16 @@ export function useGame() {
       throw err;
     }
   }), [acceptResult, enqueue]);
-  const sync = useCallback(() => post('/api/sync', { active: document.visibilityState !== 'hidden' }), [post]);
+  const sync = useMemo(() => createSyncCoordinator(
+    (shouldRequest) => post('/api/sync', {}, { shouldRequest }),
+    () => {
+      const now = Date.now();
+      const confirmed = presentation.current.confirmed;
+      const deadline = confirmed ? nextWakeAt(confirmed, now + offset.current) : null;
+      return backgroundSyncDue({ now, lastSync: timing.current.lastSync, ...backgroundState.current, gameDeadline: deadline === null ? null : deadline - offset.current });
+    },
+    () => clientEpoch.current,
+  ), [post]);
   const load = useCallback(async () => {
     setStatus('loading'); setError('');
     try {
@@ -143,7 +160,10 @@ export function useGame() {
     window.addEventListener('pagehide', pause);
     window.addEventListener('online', online);
     window.addEventListener('offline', offline);
-    if (document.visibilityState !== 'hidden') sync().catch(() => {});
+    if (document.visibilityState !== 'hidden' && activatedPlayer.current !== player.id) {
+      activatedPlayer.current = player.id;
+      sync().catch(() => {});
+    }
     return () => {
       document.removeEventListener('visibilitychange', visibility);
       window.removeEventListener('pagehide', pause);
@@ -157,12 +177,12 @@ export function useGame() {
     const deadline = nextWakeAt(presentation.current.confirmed || world, now + offset.current);
     const next = nextBackgroundRequest({ now, ...timing.current, hasOthers: hasOtherPlayersOnline, hasPendingGifts, gameDeadline: deadline === null ? null : deadline - offset.current });
     const timer = setTimeout(() => {
-      (next.kind === 'sync' ? sync() : post('/api/presence', { active: true }, { kind: 'presence' })).catch(() => {});
+      (next.kind === 'sync' ? sync({ background: true }) : post('/api/presence', { active: true }, { kind: 'presence' })).catch(() => {});
     }, next.delay);
     return () => clearTimeout(timer);
   }, [player?.id, world, hasOtherPlayersOnline, hasPendingGifts, post, sync, scheduleVersion]);
   const join = useCallback(async (name) => {
-    const result = await post('/api/join', { name });
+    const result = await post('/api/join', { name }, { activatesPlayer: true });
     setStatus('connected');
     return result;
   }, [post]);

@@ -1,6 +1,6 @@
 # Abnahmeliste – StackFriends
 
-Stand: 31.10.2026. Diese Liste beschreibt den Wechsel zu persönlichen Welten und die weiterhin geltenden Spielregeln. Automatisierte Tests prüfen die Regeln; die abschließende gemeinsame Spielabnahme erfolgt im Browser.
+Stand: 02.11.2026. Diese Liste beschreibt den Wechsel zu persönlichen Welten und die weiterhin geltenden Spielregeln. Automatisierte Tests prüfen die Regeln; die abschließende gemeinsame Spielabnahme erfolgt im Browser.
 
 ## Welten und Zugang
 
@@ -30,7 +30,11 @@ Stand: 31.10.2026. Diese Liste beschreibt den Wechsel zu persönlichen Welten un
 - [ ] Ein regelmäßiger vollständiger Hintergrundabgleich läuft nur bei weiteren Online-Spielern. Bereits angekündigte Geschenke werden auch nach dem Ausloggen des Absenders abgeholt.
 - [ ] Eigene Arbeiten und Kämpfe werden unabhängig von anderen Spielern zum nächsten Ereignis aufgelöst.
 - [ ] Im geschlossenen Spiel entstehen keine Browseranfragen. Beim Sichtbarwerden wird einmal abgeglichen.
-- [ ] Ein zweiter geschlossener Tab pausiert keine noch aktive Sitzung. Ohne aktive Sitzung pausiert die Spielzeit; Erdbeerwachstum verwendet weiterhin Echtzeit.
+- [ ] Ein zweiter geschlossener Tab beendet keine noch aktive Sitzung. Beim Wiederöffnen werden Abbau und Herstellung für die vergangene Zeit nachgeholt; Kämpfe und Tierbewegungen pausieren offline. Erdbeerwachstum verwendet weiterhin Echtzeit.
+
+- [ ] Ein Mensch auf einer Quelle liefert beim Wiedereinloggen die inzwischen fertigen Erträge; aufgebrauchte Quellen verschwinden. Teilfortschritt, Quellenwarteschlangen und Werkzeuge bleiben korrekt.
+- [ ] Wiederholtes oder gleichzeitiges Öffnen derselben Welt erzeugt keine doppelten Offline-Erträge.
+- [ ] Doppelte gleichzeitige Abgleiche werden zusammengefasst; nach einer bereits verarbeitenden Spielaktion wird ein veralteter Hintergrundabgleich ausgelassen.
 
 ## Pakete, Stapel und Wirtschaft
 
@@ -66,6 +70,6 @@ Stand: 31.10.2026. Diese Liste beschreibt den Wechsel zu persönlichen Welten un
 
 ## Prüfungen
 
-Im Shared- und Backend-Repository jeweils `npm test`, im Backend zusätzlich `npm run check`. Im Frontend `npm test`, `npm run build` und mit installiertem Backend-Checkout optional `npm run test:integration`. Prüfstand 31.10.2026: 171 Shared-Tests, 27 API-Tests, 21 Frontend-Tests und ein Anwendungstest bestanden; Produktionsbuild erfolgreich. Zusätzlich wurden konkurrierende Anmeldungen, Geschenkversand, Abholung und Neustart gegen zwei tatsächliche Atlas-Adapter geprüft; die eigene Testdatenbank wurde wieder gelöscht. Maßgeblich ist die aktuelle Testausgabe.
+Im Shared- und Backend-Repository jeweils `npm test`, im Backend zusätzlich `npm run check`. Im Frontend `npm test`, `npm run build` und mit installiertem Backend-Checkout optional `npm run test:integration`. Prüfstand 02.11.2026: 180 Shared-Tests, 35 API-Tests, 36 Frontend-Tests und ein Anwendungstest bestanden; Produktionsbuild erfolgreich. Zusätzlich wurden konkurrierende Anmeldungen, Geschenkversand, Abholung und Neustart gegen zwei tatsächliche Atlas-Adapter geprüft; die eigene Testdatenbank wurde wieder gelöscht. Maßgeblich ist die aktuelle Testausgabe.
 
 Für später: Totem zur Wiederbelebung und Kartenlimit mit Lagerfunktion.

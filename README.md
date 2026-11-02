@@ -34,6 +34,8 @@ Jeder Name besitzt eine eigene Welt mit einer Menschenkarte und neun Goldkarten.
 
 Das Spiel verwendet kurze HTTP-Aufrufe. Dragbewegungen und Animationen laufen lokal. Ein kleines Lebenszeichen erkennt andere Spieler; nur bei weiterer Online-Anwesenheit läuft ein regelmäßiger vollständiger Hintergrundabgleich. Eigene Arbeits-/Kampftermine sowie angekündigte Geschenke werden unabhängig davon verarbeitet. Ohne geöffnetes Spiel entstehen keine Browseranfragen. Online-Hinweise erscheinen ausschließlich bei geöffnetem Spiel mit eigenem Rathaus.
 
+Beim Wiedereinloggen oder Wiederöffnen werden angefangene Arbeiten nachgeholt: Ein Mensch auf einem Baum baut ihn entsprechend der vergangenen Zeit ab; Quellenwarteschlangen und Werkzeugboni werden berücksichtigt. Kämpfe und Tiere warten während der Abwesenheit. Dafür läuft im geschlossenen Spiel kein Timer und keine Netzwerkanfrage.
+
 ## Gemeinsame Spielregeln
 
 Beide Apps beziehen `@stackfriends/shared` als öffentliches HTTPS-Archiv aus dem Shared-Repository. Dieselbe vollständige Commit-SHA mit 40 Zeichen legt ihre gemeinsame Regelversion fest; `package.json` und `package-lock.json` werden mitcommittet. Die Lockdatei enthält auch die Integritätsprüfung des Archivs.
