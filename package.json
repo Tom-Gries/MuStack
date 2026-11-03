@@ -14,7 +14,7 @@
     "test:integration": "node --test tests/integration/*.test.js"
   },
   "dependencies": {
-    "@stackfriends/shared": "https://codeload.github.com/Tom-Gries/MuStackShared/tar.gz/92199af261025a5934fd52d855505e929744899c",
+    "@stackfriends/shared": "https://codeload.github.com/Tom-Gries/MuStackShared/tar.gz/36369abace7e78d31b744554862e2bc4031f1ddb",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

@@ -1,5 +1,5 @@
 const MAX_BODY_BYTES = 256 * 1024;
-const ROUTES = new Map([['session', 'GET'], ['health', 'GET'], ['join', 'POST'], ['command', 'POST'], ['sync', 'POST'], ['presence', 'POST'], ['players', 'GET'], ['materials', 'POST'], ['gift', 'POST']]);
+const ROUTES = new Map([['session', 'GET'], ['health', 'GET'], ['load', 'POST'], ['save', 'POST'], ['join', 'POST'], ['command', 'POST'], ['sync', 'POST'], ['presence', 'POST'], ['players', 'GET'], ['materials', 'POST'], ['gift', 'POST']]);
 const localHost = (hostname) => ['localhost', '127.0.0.1', '[::1]'].includes(hostname);
 
 function backendOrigin(value) {

@@ -92,8 +92,8 @@ test('proxy network errors and redirects fail without leaking credentials or fol
 test('personal-world HTTP routes are allowlisted while obsolete sockets are rejected', async (t) => {
   const calls = [];
   const front = await serve(t, createApiProxy({ backendUrl: 'https://api.example', fetchImpl: async (url) => { calls.push(url); return new Response('{}'); } }));
-  for (const route of ['sync', 'presence', 'materials', 'gift']) assert.equal((await fetch(`${front}/api/${route}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })).status, 200);
+  for (const route of ['load', 'save', 'sync', 'presence', 'materials', 'gift']) assert.equal((await fetch(`${front}/api/${route}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })).status, 200);
   assert.equal((await fetch(`${front}/api/players`)).status, 200);
   assert.equal((await fetch(`${front}/api/socket-ticket`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })).status, 404);
-  assert.equal(calls.length, 5);
+  assert.equal(calls.length, 7);
 });

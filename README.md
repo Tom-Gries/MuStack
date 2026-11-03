@@ -32,9 +32,11 @@ Jeder Name besitzt eine eigene Welt mit einer Menschenkarte und neun Goldkarten.
 
 100 Steine und ein Mensch ergeben nach 60 Sekunden ein Rathaus. Ein Klick auf die Karte öffnet die Namensliste und gespeicherte Materialmengen anderer Spieler. Karten auf einen Namen ziehen, um sie zu verschenken. Geschenke kommen beim nächsten Abgleich nach etwa einer Minute an; offline wartet der Eingang bis zur Rückkehr.
 
-Das Spiel verwendet kurze HTTP-Aufrufe. Dragbewegungen und Animationen laufen lokal. Ein kleines Lebenszeichen erkennt andere Spieler; nur bei weiterer Online-Anwesenheit läuft ein regelmäßiger vollständiger Hintergrundabgleich. Eigene Arbeits-/Kampftermine sowie angekündigte Geschenke werden unabhängig davon verarbeitet. Ohne geöffnetes Spiel entstehen keine Browseranfragen. Online-Hinweise erscheinen ausschließlich bei geöffnetem Spiel mit eigenem Rathaus.
+Die gesamte laufende Welt wird im Browser simuliert. Ziehen, Ablegen, Pakete öffnen, Arbeiten, Kämpfe und Tierbewegungen benötigen keine eigene Serveranfrage. Änderungen werden gewöhnlich alle 60 Sekunden als Journalpaket gespeichert; beim Verlassen wird zusätzlich bestmöglich gesichert. Ein unverändertes Spiel erneuert stattdessen nur mit einem kleinen Lebenszeichen die Anwesenheit. Bekannte Geschenke werden gezielt abgeholt. Ohne geöffnetes Spiel entstehen keine laufenden Browseranfragen. Online-Hinweise erscheinen ausschließlich bei geöffnetem Spiel mit eigenem Rathaus.
 
 Beim Wiedereinloggen oder Wiederöffnen werden angefangene Arbeiten nachgeholt: Ein Mensch auf einem Baum baut ihn entsprechend der vergangenen Zeit ab; Quellenwarteschlangen und Werkzeugboni werden berücksichtigt. Kämpfe und Tiere warten während der Abwesenheit. Dafür läuft im geschlossenen Spiel kein Timer und keine Netzwerkanfrage.
+
+Der Browser bewahrt unbestätigte Änderungen als lokale Sicherung auf. Retrys verwenden dieselbe Speicher-ID. Eine verspätete Bestätigung lässt spätere Aktionen erhalten. Vor Geschenken oder globalen Editoränderungen wird das Journal gesichert; Versionsprüfungen verhindern das Überschreiben neuerer Spielstände. Ein Konflikt wird sichtbar gemeldet und die lokale Sicherung bleibt erhalten.
 
 ## Gemeinsame Spielregeln
 

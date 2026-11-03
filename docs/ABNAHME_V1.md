@@ -1,6 +1,6 @@
 # Abnahmeliste – StackFriends
 
-Stand: 02.11.2026. Diese Liste beschreibt den Wechsel zu persönlichen Welten und die weiterhin geltenden Spielregeln. Automatisierte Tests prüfen die Regeln; die abschließende gemeinsame Spielabnahme erfolgt im Browser.
+Stand: 03.11.2026. Diese Liste beschreibt den Wechsel zu persönlichen Welten und die weiterhin geltenden Spielregeln. Automatisierte Tests prüfen die Regeln; die abschließende gemeinsame Spielabnahme erfolgt im Browser.
 
 ## Welten und Zugang
 
@@ -25,16 +25,16 @@ Stand: 02.11.2026. Diese Liste beschreibt den Wechsel zu persönlichen Welten un
 ## Sparsame Kommunikation und Zeit
 
 - [ ] Es gibt keine dauerhaft offenen Sockets oder MongoDB Change Streams.
-- [ ] Ziehen und Animationen erzeugen keine Netzwerkanfragen; abgeschlossene Aktionen werden gespeichert.
-- [ ] Ein kleines Lebenszeichen erneuert den Onlinestatus ungefähr einmal pro Minute, ohne die Welt zu laden.
-- [ ] Ein regelmäßiger vollständiger Hintergrundabgleich läuft nur bei weiteren Online-Spielern. Bereits angekündigte Geschenke werden auch nach dem Ausloggen des Absenders abgeholt.
-- [ ] Eigene Arbeiten und Kämpfe werden unabhängig von anderen Spielern zum nächsten Ereignis aufgelöst.
+- [ ] Kartenaktionen, Paketöffnen, Abbau, Bau, Kampf und Tierbewegungen laufen lokal. Während der Ereignisse entstehen keine eigenen HTTP-Anfragen.
+- [ ] Ungefähr einmal pro Minute werden Änderungen als Paket gespeichert oder bei unverändertem Stand nur ein kleines Lebenszeichen gesendet.
+- [ ] Ein vollständiger Abgleich erfolgt gezielt bei bekannten Geschenken oder bewusstem Aktualisieren. Bereits angekündigte Geschenke werden auch nach dem Ausloggen des Absenders abgeholt.
+- [ ] Eigene Arbeiten und Kämpfe werden vom Browser unabhängig von anderen Spielern zum nächsten Ereignis aufgelöst.
 - [ ] Im geschlossenen Spiel entstehen keine Browseranfragen. Beim Sichtbarwerden wird einmal abgeglichen.
 - [ ] Ein zweiter geschlossener Tab beendet keine noch aktive Sitzung. Beim Wiederöffnen werden Abbau und Herstellung für die vergangene Zeit nachgeholt; Kämpfe und Tierbewegungen pausieren offline. Erdbeerwachstum verwendet weiterhin Echtzeit.
 
 - [ ] Ein Mensch auf einer Quelle liefert beim Wiedereinloggen die inzwischen fertigen Erträge; aufgebrauchte Quellen verschwinden. Teilfortschritt, Quellenwarteschlangen und Werkzeuge bleiben korrekt.
 - [ ] Wiederholtes oder gleichzeitiges Öffnen derselben Welt erzeugt keine doppelten Offline-Erträge.
-- [ ] Doppelte gleichzeitige Abgleiche werden zusammengefasst; nach einer bereits verarbeitenden Spielaktion wird ein veralteter Hintergrundabgleich ausgelassen.
+- [ ] Speicherpakete sind wiederholbar und bestätigen nur ihren Journalanfang. Neuere lokale Aktionen bleiben erhalten; verlorene Antworten lassen sich aus der lokalen Sicherung wiederherstellen.
 
 ## Pakete, Stapel und Wirtschaft
 
@@ -70,6 +70,6 @@ Stand: 02.11.2026. Diese Liste beschreibt den Wechsel zu persönlichen Welten un
 
 ## Prüfungen
 
-Im Shared- und Backend-Repository jeweils `npm test`, im Backend zusätzlich `npm run check`. Im Frontend `npm test`, `npm run build` und mit installiertem Backend-Checkout optional `npm run test:integration`. Prüfstand 02.11.2026: 180 Shared-Tests, 35 API-Tests, 36 Frontend-Tests und ein Anwendungstest bestanden; Produktionsbuild erfolgreich. Zusätzlich wurden konkurrierende Anmeldungen, Geschenkversand, Abholung und Neustart gegen zwei tatsächliche Atlas-Adapter geprüft; die eigene Testdatenbank wurde wieder gelöscht. Maßgeblich ist die aktuelle Testausgabe.
+Im Shared- und Backend-Repository jeweils `npm test`, im Backend zusätzlich `npm run check`. Im Frontend `npm test`, `npm run build` und mit installiertem Backend-Checkout optional `npm run test:integration`. Prüfstand 03.11.2026: 191 Shared-Tests, 47 API-Tests, 34 Frontend-Tests und drei Anwendungstests bestanden; Produktionsbuild erfolgreich. Zusätzlich wurden konkurrierende Anmeldungen, Geschenkversand, Abholung und Neustart gegen zwei tatsächliche Atlas-Adapter geprüft; die eigene Testdatenbank wurde wieder gelöscht. Maßgeblich ist die aktuelle Testausgabe.
 
 Für später: Totem zur Wiederbelebung und Kartenlimit mit Lagerfunktion.

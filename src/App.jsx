@@ -167,8 +167,8 @@ export default function App() {
   const CARD_TYPES = getCardTypes(world);
   const RECIPES = getRecipes(world);
   const packs = getPacks(world);
-  const connected = game.status === 'connected';
-  const saveLabel = !player ? 'Persönliche Welten' : game.status === 'offline' ? 'Offline' : game.saveStatus === 'error' ? 'Abgleich fehlgeschlagen' : game.saveStatus === 'saving' ? 'Speichert …' : connected ? 'Gespeichert' : 'Lädt …';
+  const connected = game.status === 'connected' || game.status === 'offline';
+  const saveLabel = !player ? 'Persönliche Welten' : game.status === 'conflict' ? 'Andere Sitzung' : game.status === 'offline' ? 'Offline · lokal' : game.saveStatus === 'error' ? 'Speichern fehlgeschlagen' : game.saveStatus === 'saving' ? 'Speichert …' : game.saveStatus === 'unsaved' ? 'Noch nicht gespeichert' : connected ? 'Gespeichert' : 'Lädt …';
   const savedAt = game.lastSavedAt && new Date(game.lastSavedAt);
   const saveTitle = savedAt && Number.isFinite(savedAt.getTime()) ? `Zuletzt gespeichert: ${savedAt.toLocaleString('de-DE')}` : 'Deine Welt wird automatisch gespeichert.';
   const cards = world?.cards || [];
@@ -334,8 +334,8 @@ export default function App() {
         else if (value.harvest) await execute({ type: 'harvest', cardId: value.cardId, x: value.x, y: value.y }, 'Zehn frische Beeren geerntet.');
         else {
           const completion = execute({ type: 'move', cardId: value.cardId, x: value.x, y: value.y, split: value.split, takeAbove: value.takeAbove, ...(targetId ? { targetId } : {}), ...(zone ? { zone, ...(zone === 'shop' ? { packId: zoneElement.dataset.packId } : {}) } : {}) }, zone === 'shop' ? 'Gold eingezahlt.' : zone === 'open' ? 'Neue Karten entdeckt.' : zone === 'sell' ? 'Karten gegen Gold verkauft.' : null);
-          // Ordinary moves already have a local projection; release the pointer immediately.
-          if (!zone) clearGesture();
+          // Local moves settle immediately; a remote barrier keeps this gesture visible.
+          if (!zone && !game.isRemoteBusy()) clearGesture();
           await completion;
         }
       } catch { /* Error is displayed by execute. */ }
@@ -344,7 +344,7 @@ export default function App() {
     const cancel = () => { if (frame !== null) cancelAnimationFrame(frame); frame = null; latestPointer = null; dragRef.current = null; panRef.current = null; setDrag(null); setHighlight(null); };
     window.addEventListener('pointermove', move); window.addEventListener('pointerup', finish); window.addEventListener('pointercancel', cancel); window.addEventListener('blur', cancel);
     return () => { if (frame !== null) cancelAnimationFrame(frame); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', finish); window.removeEventListener('pointercancel', cancel); window.removeEventListener('blur', cancel); };
-  }, [point, execute, activateCard, game.sendGift, game.notify, game.worldRef, zoom]);
+  }, [point, execute, activateCard, game.sendGift, game.notify, game.worldRef, game.isRemoteBusy, zoom]);
 
   const center = () => {
     const human = cards.find((c) => c.ownerId === player?.id) || cards[0];
@@ -389,7 +389,8 @@ export default function App() {
       </aside>
     </main>
     {drag && highlight?.startsWith('gift:') && <div className="gift-drag-ghost" style={{ left: Math.max(8, Math.min(drag.clientX + 14, window.innerWidth - 220)), top: Math.max(8, Math.min(drag.clientY + 14, window.innerHeight - 70)) }} aria-hidden="true"><span className="gift-drag-art"><CardArt type={drag.card.type} /></span><span><strong>{drag.ids.length > 1 ? `${drag.ids.length} Karten verschenken` : (drag.card.name || drag.card.packName || CARD_TYPES[drag.card.type]?.name)}</strong><small>Loslassen zum Verschenken</small></span></div>}
-    {game.status === 'offline' && <div className="connection-banner"><WifiOff size={15} /> Du bist offline. Sobald dein Internet zurück ist, geht es weiter.</div>}
+    {game.status === 'offline' && <div className="connection-banner"><WifiOff size={15} /> Du bist offline. Dein Spiel läuft lokal weiter; Änderungen werden später übertragen.</div>}
+    {game.status === 'conflict' && <div className="connection-banner" role="alert" style={{ whiteSpace: 'normal' }}><WifiOff size={15} /><span>{game.error} Deine lokale Sicherung bleibt erhalten.</span><button className="secondary-button" onClick={() => game.resolveConflict().catch(() => {})}>Gespeicherten Stand laden</button></div>}
     {(!game.loaded || !player) && <Welcome onJoin={game.join} status={game.status} error={game.error} onRetry={game.reload} />}
     {dialog === 'help' && <Help onClose={closeDialog} />}
     {inspect && <Dialog title={inspect.name || CARD_TYPES[inspect.type].name} onClose={closeDialog} className="card-detail"><div className="detail-art" style={{ background: CARD_TYPES[inspect.type].color }}><CardArt type={inspect.type} /></div><p>{CARD_TYPES[inspect.type].description}</p><div className="detail-stats">{inspect.hp !== undefined && <span><Heart size={16} />{inspect.hp} / {creatureProfile(world, inspect)?.hp ?? CONFIG.humanHp} Leben</span>}<span><Coins size={16} />{CARD_TYPES[inspect.type].sellPrice ? `${CARD_TYPES[inspect.type].sellPrice} Gold Verkaufswert` : 'Nicht verkaufbar'}</span></div>{inspect.toolId && <button className="secondary-button" onClick={() => execute({ type: 'unequip', cardId: inspect.id }, 'Werkzeug abgelegt.').catch(() => {})}>Werkzeug ablegen <ArrowUpRight size={15} /></button>}</Dialog>}
