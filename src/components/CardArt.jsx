@@ -305,6 +305,98 @@ function Chest() {
   </>;
 }
 
+function MineralVein({ coal = false }) {
+  return <>
+    <Shadow rx={45} />
+    <path d="m15 77 10-29 19-8 9-20 24 7 20 23 9 28-28 11H36Z" fill={C.stone} />
+    <path d="m25 48 23 15 5-43m-5 43 28-17 1-19m-1 19 21 4M48 63 36 89m40-43 2 43" fill="none" stroke={C.darkStone} strokeWidth="1.7" />
+    {coal ? <>
+      <path d="m22 65 15-9 17 3 10-9 20 2 16 11 3 10-22-10-13 3-13 9-18-2-19 7Z" fill={C.ink} />
+      <path d="m34 63 16 3 12-8 17 1 12 7m-34 0-5 6m24-12-5 6" fill="none" stroke={C.darkStone} strokeWidth="1.8" />
+      <path d="m73 35 6-3 7 6-5 7-10-2Z" fill={C.ink} />
+      <path d="m78 35 4 4" fill="none" stroke={C.darkStone} strokeWidth="1.8" />
+    </> : <>
+      <path d="m29 59 11-10 11 3 2 11-13 8-12-3Z" fill={C.terra} />
+      <path d="m53 44 10-8 11 4-1 12-13 4-8-5Z" fill={C.red} />
+      <path d="m72 67 10-12 12 6 3 12-13 9-13-5Z" fill={C.terra} />
+      <path d="m40 49-1 11 12 3m24-21-12 4-3 10m22 1 3 12 12 4" fill="none" stroke={C.bark} strokeWidth="1.4" />
+      <path d="m33 59 5-5m19-10 4-4m17 27 5-6" fill="none" stroke={C.lightTerra} strokeWidth="2.2" />
+    </>}
+    <path d="m55 25 13 4-10 12m-31 8 9-4" fill="none" stroke={C.cream} strokeWidth="2.5" opacity=".5" />
+    <Grass x={15} y={87} scale={.55} />
+    <path d="m95 84 6-5 8 7-4 4h-8Z" fill={coal ? C.ink : C.terra} />
+  </>;
+}
+
+function ClayPool() {
+  return <>
+    <Shadow y={87} rx={47} />
+    <path d="M17 65c-7-8 2-19 16-23 5-14 27-18 42-9 18-2 35 11 30 23 15 14 3 29-18 31-16 8-39 5-52 0-16 0-24-12-18-22Z" fill={C.bark} />
+    <path d="M24 60c-1-11 16-15 26-17 9-9 25-8 34 0 16 3 23 15 14 24-12 10-48 14-64 5-6-3-10-7-10-12Z" fill={C.lightTerra} />
+    <path d="M39 55c8-10 34-13 45-3 9 7 4 14-9 18-11 3-29 1-34-4-4-4-5-7-2-11Z" fill="#b8bba0" />
+    <path d="m45 59 14 2m9 3 9-2m-17-9 10-1" fill="none" stroke={C.cream} strokeWidth="2" />
+    <path d="m25 74 9 3m46 3 13-5M22 51l7-3m-8 20 5 3" fill="none" stroke={C.terra} strokeWidth="2" />
+    <path d="m25 82-2-16m2 7 7-10m-6 7-9-7" fill="none" stroke={C.darkGreen} strokeWidth="1.8" />
+    <path d="m98 42 1-13m-1 8 6-7" fill="none" stroke={C.darkGreen} strokeWidth="1.8" />
+    <Leaf x={24} y={72} rotate={-55} scale={.42} />
+    <path d="m86 88 7-7 13 4-2 5H90Z" fill={C.terra} />
+  </>;
+}
+
+function Bat() {
+  return <>
+    <Shadow y={87} rx={29} ry={4} />
+    <path d="M53 49C42 32 25 26 10 35c6 1 12 7 13 15 8-4 16 0 20 10 3-3 7-5 12-4m12-7c11-17 28-23 43-14-6 1-12 7-13 15-8-4-16 0-20 10-3-3-7-5-12-4" fill={C.darkGreen} />
+    <path d="M51 49 25 38l17 16m27-5 26-11-17 16" fill="none" stroke={C.lightGreen} strokeWidth="1.5" />
+    <path d="M49 39 45 21c10 0 16 8 15 14 2-9 10-14 17-14l-5 20c6 7 4 24-4 32l-8 6-9-7c-8-9-9-25-2-33Z" fill={C.bark} />
+    <path d="m49 28 2 13 7-4m14-9-7 9 4 5" fill={C.lightTerra} strokeWidth="1.4" />
+    <path d="M51 61c4-5 14-5 18 0 1 6-4 10-9 13-5-3-10-7-9-13Z" fill={C.wood} stroke="none" />
+    <circle cx="52" cy="49" r="3" fill={C.ink} stroke="none" />
+    <circle cx="68" cy="49" r="3" fill={C.ink} stroke="none" />
+    <circle cx="53" cy="48" r="1" fill={C.cream} stroke="none" />
+    <circle cx="69" cy="48" r="1" fill={C.cream} stroke="none" />
+    <path d="m58 54 2 2 2-2m-6 6c3 2 5 2 8 0m-11 12-3 5m17-5 3 5" fill="none" strokeWidth="1.6" />
+    <path d="m15 24-4-4m94 4 4-4" fill="none" stroke={C.gold} strokeWidth="1.6" />
+  </>;
+}
+
+function IronOre() {
+  return <>
+    <Shadow rx={39} />
+    <path d="m23 69 8-20 18-7 17 16-2 20-24 8Z" fill={C.darkStone} />
+    <path d="m33 52 15-6 13 12-12 8-17-1Z" fill={C.terra} />
+    <path d="m33 65 16 1-9 20m9-20 15 12" fill="none" stroke={C.bark} strokeWidth="1.5" />
+    <path d="m61 69 4-27 19-11 18 20-6 27-20 10Z" fill={C.stone} />
+    <path d="m69 44 14-9 13 16-13 10-14-3Z" fill={C.red} />
+    <path d="m83 61-7 27m7-27 13 17" fill="none" stroke={C.bark} strokeWidth="1.7" />
+    <path d="m37 53 8-3m27-5 9-5m-2 24 6 3" fill="none" stroke={C.lightTerra} strokeWidth="2.3" />
+    <path d="m17 82 7-5 9 7-4 6h-9Z" fill={C.terra} />
+  </>;
+}
+
+function Coal() {
+  return <>
+    <Shadow rx={40} />
+    <path d="m22 67 10-22 18-5 19 16-4 22-25 8Z" fill={C.ink} />
+    <path d="m32 45 12 20 25-9m-25 9-4 21m4-21 21 13" fill="none" stroke={C.darkStone} strokeWidth="1.7" />
+    <path d="m62 67 5-25 16-12 19 21-7 29-19 8Z" fill={C.ink} />
+    <path d="m67 42 16 17 19-8M83 59l-7 29m7-29 12 21" fill="none" stroke={C.darkStone} strokeWidth="1.8" />
+    <path d="m35 49 8-3m29-2 8-6" fill="none" stroke={C.stone} strokeWidth="2.3" opacity=".6" />
+    <path d="m15 83 7-7 12 6-3 8H19Zm81 4 5-7 8 5-2 5h-8Z" fill={C.ink} />
+  </>;
+}
+
+function Clay() {
+  return <>
+    <Shadow rx={41} />
+    <path d="M23 62c-1-10 9-20 21-19 10-12 29-10 38 0 15-1 24 13 18 25-1 15-18 21-31 17-16 6-43-1-46-15Z" fill={C.terra} />
+    <path d="M27 59c4-9 11-13 21-10 11-11 25-8 31 0 10-2 17 4 18 11-12-3-16 3-25 4-11 1-17-3-28-2-7 1-11 0-17-3Z" fill={C.lightTerra} stroke="none" />
+    <path d="M26 69c9 6 14 4 22 7m11-24c5 7 7 14 3 23m17-8c8 0 13-3 19-7" fill="none" stroke={C.bark} strokeWidth="1.7" />
+    <path d="m33 55 7-3m34-5 5 3M34 73l5 2" fill="none" stroke={C.cream} strokeWidth="2.3" opacity=".55" />
+    <path d="M88 83c2-7 9-8 14-3l3 7-7 4-10-2Z" fill={C.lightTerra} />
+  </>;
+}
+
 const artwork = {
   human: <Person />,
   corpse: <Person corpse />,
@@ -318,6 +410,13 @@ const artwork = {
   piggyBank: <PiggyBank />,
   warehouse: <Warehouse />,
   chest: <Chest />,
+  ironVein: <MineralVein />,
+  coalVein: <MineralVein coal />,
+  clayPool: <ClayPool />,
+  bat: <Bat />,
+  ironOre: <IronOre />,
+  coal: <Coal />,
+  clay: <Clay />,
   axe: <Tool />,
   pickaxe: <Tool pickaxe />,
   gold: (

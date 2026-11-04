@@ -38,6 +38,10 @@ Beim Wiedereinloggen oder Wiederöffnen werden angefangene Arbeiten nachgeholt: 
 
 Der Browser bewahrt unbestätigte Änderungen als lokale Sicherung auf. Retrys verwenden dieselbe Speicher-ID. Eine verspätete Bestätigung lässt spätere Aktionen erhalten. Vor Geschenken oder globalen Editoränderungen wird das Journal gesichert; Versionsprüfungen verhindern das Überschreiben neuerer Spielstände. Ein Konflikt wird sichtbar gemeldet und die lokale Sicherung bleibt erhalten.
 
+## Bergbaupaket
+
+Das Bergbaupaket kostet 50 Gold und enthält drei zufällige Karten. Pro Ziehung sind Eisenader (33 %), Kohleader (32 %), Lehmtümpel (32 %) oder Fledermaus (3 %) möglich. Eine Goldader gehört nicht zum Paket. Ein Mensch gewinnt aus jeder Quelle fünfmal je ein Eisenerz, eine Kohle oder einen Lehm, normalerweise alle zehn Sekunden. Die Spitzhacke halbiert die Zeit an Eisen- und Kohleadern. Die Fledermaus verfolgt Menschen, hat drei Leben und verursacht alle zwei Sekunden einen Schaden; beim Tod entsteht ein Knochen oder ein Fleisch. Karten, Quellen, Beute und das Paket sind im Editor und im Baum sichtbar und bearbeitbar. Bestehende Welten erhalten die neuen Definitionen beim Laden, ohne ihren Fortschritt oder eigene Einstellungen zu verlieren.
+
 ## Kisten
 
 10 Holz ergeben nach 10 Sekunden eine Kiste, ohne Menschen. Per Klick auf die Kistenkarte öffnet sich ihr Inventar. Ressourcen und Nahrung einzeln oder als Stapel auf die Kiste oder in das offene Fenster ziehen. Der Inhalt erscheint nach Kartentyp mit Mengen. Einzelne Karten lassen sich wieder auf das Spielfeld ziehen; die Schaltflächen entnehmen eine Karte oder alle desselben Typs. Der Inhalt wird zusammen mit der Welt gespeichert und in der Materialübersicht mitgezählt. Vor dem Verkaufen oder Verschenken muss die Kiste leer sein.

@@ -39,6 +39,7 @@ Stand: 03.11.2026. Diese Liste beschreibt den Wechsel zu persönlichen Welten un
 ## Pakete, Stapel und Wirtschaft
 
 - [ ] Basicpakete kosten drei Gold und enthalten drei zufällige Karten: Baum, Fels, Beerenbusch sowie sehr selten Ratte oder fruchtbarer Boden.
+- [ ] Das Bergbaupaket kostet 50 Gold für drei Karten und enthält Eisenader (33 %), Kohleader (32 %), Lehmtümpel (32 %) und selten Fledermaus (3 %). Eine Goldader ist nicht enthalten. Der Kauf unterstützt Teilzahlungen und gefüllte Sparschweine.
 - [ ] Gold-Teilzahlungen senken den offenen Preis. Nach vollständiger Zahlung erscheint ein Paket und der Preis beginnt von vorn.
 - [ ] Ein ausreichend gefülltes Sparschwein bezahlt den offenen Paketpreis ohne überschüssiges Gold zu verlieren.
 - [ ] Ein Klick auf ein gekauftes Paket lässt genau eine Karte erscheinen; der Restinhalt bleibt gespeichert.
@@ -50,6 +51,7 @@ Stand: 03.11.2026. Diese Liste beschreibt den Wechsel zu persönlichen Welten un
 
 - [ ] Ein Mensch arbeitet mehrere Quellen im Stapel nacheinander ab; verbrauchte Quellen verschwinden.
 - [ ] Baum liefert Holz oder Stock; Fels liefert Stein oder Feuerstein; Beerenbusch liefert Beeren.
+- [ ] Eisenader, Kohleader und Lehmtümpel liefern jeweils fünfmal ein Eisenerz, eine Kohle bzw. einen Lehm. Ein Durchlauf dauert zehn Sekunden, an Erz- und Kohleadern mit Spitzhacke fünf Sekunden. Abwesenheit wird beim Wiedereinloggen berücksichtigt.
 - [ ] Fünf Holz und fünf Stein ergeben ein Lager; fünf Holz und ein Stein eine Axt; fünf Holz und zwei Stein eine Spitzhacke, jeweils mit Mensch.
 - [ ] Zehn Holz ergeben ohne Mensch nach zehn Sekunden eine Kiste. Das Rezept ist auch im Editor und im Fortschrittsbaum sichtbar.
 - [ ] Ein Klick auf eine Kiste öffnet ihr Inventar. Ressourcen und Nahrung lassen sich einzeln oder als Stapel auf die Karte und in das Fenster ziehen; Namen und Mengen erscheinen im Fenster.
@@ -58,6 +60,7 @@ Stand: 03.11.2026. Diese Liste beschreibt den Wechsel zu persönlichen Welten un
 - [ ] Drei Stock und ein Feuerstein ergeben Feuer; Feuer und Fleisch ergeben gebratenes Fleisch.
 - [ ] Menschen können gemeinsam kämpfen. Mehrere Ratten können ein gegnerisches Team bilden; ein roter Rahmen zeigt den Kampf.
 - [ ] Ratten bewegen sich zum Menschen, brauchen regulär zwei Treffer und verursachen einen Schaden pro Angriff.
+- [ ] Fledermäuse verfolgen Menschen, haben drei Leben und verursachen einen Schaden pro Angriff. Beim Tod liefern sie einen Knochen oder ein Fleisch; ihre Beute und ihr Verhalten sind im Editor bearbeitbar.
 - [ ] Menschen starten mit 75 Leben. Nahrung im Stapel wird bis zum vollen Leben gegessen; Beeren heilen je ein Leben. Bei null Leben bleibt eine Leiche.
 - [ ] Mensch und Huhn lösen einen Kampf aus; Tod kann Knochen, Ei oder Fleisch liefern. Beute ist im Editor einstellbar.
 - [ ] Fruchtbarer Boden und Beere wachsen nach einer Echtzeitstunde zum Erdbeerfeld. Eine Tagesernte enthält zehn Beeren und sammelt sich unangeerntet nicht über mehrere Tage an.
