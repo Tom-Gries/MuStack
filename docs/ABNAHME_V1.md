@@ -51,6 +51,9 @@ Stand: 03.11.2026. Diese Liste beschreibt den Wechsel zu persönlichen Welten un
 - [ ] Ein Mensch arbeitet mehrere Quellen im Stapel nacheinander ab; verbrauchte Quellen verschwinden.
 - [ ] Baum liefert Holz oder Stock; Fels liefert Stein oder Feuerstein; Beerenbusch liefert Beeren.
 - [ ] Fünf Holz und fünf Stein ergeben ein Lager; fünf Holz und ein Stein eine Axt; fünf Holz und zwei Stein eine Spitzhacke, jeweils mit Mensch.
+- [ ] Zehn Holz ergeben ohne Mensch nach zehn Sekunden eine Kiste. Das Rezept ist auch im Editor und im Fortschrittsbaum sichtbar.
+- [ ] Ein Klick auf eine Kiste öffnet ihr Inventar. Ressourcen und Nahrung lassen sich einzeln oder als Stapel auf die Karte und in das Fenster ziehen; Namen und Mengen erscheinen im Fenster.
+- [ ] Eingelagerte Karten lassen sich herausziehen, einzeln oder nach Sorte entnehmen und behalten ihren Zustand nach Speichern und neuem Laden. Gefüllte Kisten sind vor Verkauf, Verschenken und Rezeptverbrauch geschützt.
 - [ ] Axt und Spitzhacke beschleunigen die passende Arbeit. Stock, Feuerstein und Mensch ergeben ein Messer mit zusätzlichem Kampfschaden.
 - [ ] Drei Stock und ein Feuerstein ergeben Feuer; Feuer und Fleisch ergeben gebratenes Fleisch.
 - [ ] Menschen können gemeinsam kämpfen. Mehrere Ratten können ein gegnerisches Team bilden; ein roter Rahmen zeigt den Kampf.

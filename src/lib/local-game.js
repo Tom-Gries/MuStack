@@ -1,4 +1,5 @@
 import { initializeLocalSimulation, applySimulationOperation, replaySimulationBatch, MAX_SIMULATION_OPERATIONS } from '@stackfriends/shared/local-simulation.js';
+import { getCatalog } from '@stackfriends/shared/catalog.js';
 
 const clone = (value) => structuredClone(value);
 const validRevision = (value) => Number.isSafeInteger(value) && value >= 0;
@@ -129,7 +130,7 @@ export class LocalGame {
     if (this._pendingSave) return clone(this._pendingSave);
     if (!this.isDirty) return null;
     if (!saveIdValid(saveId)) fail('Das Speicherpaket benötigt eine eindeutige ID.');
-    this._pendingSave = { saveId, baseRevision: this._baseRevision, operations: clone(this._operations.slice(0, this._maxBatchSize)) };
+    this._pendingSave = { saveId, baseRevision: this._baseRevision, catalogContentVersion: getCatalog(this._baseWorld).contentVersion, operations: clone(this._operations.slice(0, this._maxBatchSize)) };
     return clone(this._pendingSave);
   }
 

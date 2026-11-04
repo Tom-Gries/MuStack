@@ -8,9 +8,11 @@ import SettingsPage from './components/SettingsPage.jsx';
 import PackShop from './components/PackShop.jsx';
 import RecipeBook from './components/RecipeBook.jsx';
 import FriendsPanel from './components/FriendsPanel.jsx';
+import ChestPanel from './components/ChestPanel.jsx';
 import { useGame } from './useGame.js';
 import { dragSelection, overlappingTarget } from './board.js';
 import { creatureProfile } from '@stackfriends/shared/creatures.js';
+import './chest.css';
 
 const W = CONFIG.cardWidth;
 const H = CONFIG.cardHeight;
@@ -42,7 +44,7 @@ function realPosition(card, world, now, offset) {
   return { x: m.fromX + (m.toX - m.fromX) * amount, y: m.fromY + (m.toY - m.fromY) * amount };
 }
 
-const GameCard = memo(function GameCard({ card, world, job, combat, own, index, count, motionAnchor, preview, dragging, locked, offset, onPointerDown, onInspect, onActivate, tool }) {
+const GameCard = memo(function GameCard({ card, world, job, combat, own, index, count, motionAnchor, preview, dragging, locked, offset, onPointerDown, onInspect, onActivate, tool, storageTarget }) {
   const CARD_TYPES = getCardTypes(world);
   const now = useNow(Boolean(motionAnchor || job || card.type === 'field'), Boolean(motionAnchor));
   const definition = CARD_TYPES[card.type];
@@ -57,6 +59,7 @@ const GameCard = memo(function GameCard({ card, world, job, combat, own, index, 
   if (card.type === 'gold') subtitle = '1 Gold';
   if (card.type === 'pack') subtitle = `${card.cardsLeft ?? CONFIG.packSize} ${(card.cardsLeft ?? CONFIG.packSize) === 1 ? 'Karte' : 'Karten'} · anklicken`;
   if (card.type === 'piggyBank') subtitle = `${card.gold || 0} Gold gespeichert`;
+  if (card.type === 'chest') subtitle = `${card.contents?.length || 0} Karten eingelagert`;
   if (card.type === 'field') subtitle = fieldReady ? '10 Beeren · erntereif' : `Ernte in ${shortTime(card.readyAt - now - offset)}`;
   if (card.type === 'corpse') subtitle = 'Leiche · Totem folgt später';
   if (creature) subtitle = `${creature.aggressive ? 'Angreifend' : 'Friedlich'} · ${{ wander: 'rumlaufend', stationary: 'stehend', seek: 'zielsuchend' }[creature.behavior]}`;
@@ -68,13 +71,13 @@ const GameCard = memo(function GameCard({ card, world, job, combat, own, index, 
     if (sources.length > 1 && source) subtitle = `${CARD_TYPES[source.type].name} · ${sources.length} Quellen`;
   }
   return <div
-    className={`card card--${definition.category} card-type-${card.type} ${dragging ? 'is-dragging' : ''} ${locked ? 'is-locked' : ''} ${own ? 'is-own' : ''} ${combat ? 'in-combat' : ''}`}
+    className={`card card--${definition.category} card-type-${card.type} ${dragging ? 'is-dragging' : ''} ${locked ? 'is-locked' : ''} ${own ? 'is-own' : ''} ${combat ? 'in-combat' : ''} ${storageTarget ? 'is-storage-target' : ''}`}
     style={{ '--card-color': card.packColor || definition.color, transform: `translate(${position.x}px, ${position.y + (preview ? (preview.itemOffset ?? (index - (preview.baseOrder || 0))) * STACK : index * STACK)}px)`, zIndex: dragging ? 10000 + index : preview ? 9000 + index : 10 + index }}
     data-card-id={card.id}
     onPointerDown={(event) => onPointerDown(event, card)}
-    onDoubleClick={(event) => { event.stopPropagation(); if (!['piggyBank', 'pack', 'town_hall'].includes(card.type)) onInspect(card); }}
-    role={['pack', 'piggyBank', 'town_hall'].includes(card.type) ? 'button' : 'group'} tabIndex={['pack', 'piggyBank', 'town_hall'].includes(card.type) ? 0 : undefined}
-    onKeyDown={(event) => { if (event.target === event.currentTarget && ['pack', 'piggyBank', 'town_hall'].includes(card.type) && ['Enter', ' '].includes(event.key) && !event.repeat) { event.preventDefault(); onActivate(card); } }}
+    onDoubleClick={(event) => { event.stopPropagation(); if (!['piggyBank', 'pack', 'town_hall', 'chest'].includes(card.type)) onInspect(card); }}
+    role={['pack', 'piggyBank', 'town_hall', 'chest'].includes(card.type) ? 'button' : 'group'} tabIndex={['pack', 'piggyBank', 'town_hall', 'chest'].includes(card.type) ? 0 : undefined}
+    onKeyDown={(event) => { if (event.target === event.currentTarget && ['pack', 'piggyBank', 'town_hall', 'chest'].includes(card.type) && ['Enter', ' '].includes(event.key) && !event.repeat) { event.preventDefault(); onActivate(card); } }}
     aria-label={`${name}${card.type === 'human' ? `, ${card.hp} von 75 Leben` : creature ? `, ${card.hp ?? creature.hp} von ${creature.hp} Leben` : card.type === 'pack' ? `, ${card.cardsLeft ?? CONFIG.packSize} ${(card.cardsLeft ?? CONFIG.packSize) === 1 ? 'Karte' : 'Karten'}, anklicken zum Öffnen` : ''}`}
   >
     <div className="card-header"><span className="card-name" data-split="true" title="Hier teilen: diese Karte und alle darüber ziehen">{name}</span><span className="card-grip" title="Diese Karte und alle darüber bewegen" aria-label="Diese Karte und alle darüber bewegen">⠿</span></div>
@@ -91,6 +94,7 @@ const GameCard = memo(function GameCard({ card, world, job, combat, own, index, 
       {fieldReady && <div className="crop-ready" data-harvest={card.id} title="Beeren zum Ernten herausziehen"><Sprout size={12} /> Ernte herausziehen <ArrowUpRight size={11} /></div>}
     </div>
     {card.type === 'piggyBank' && <span className="piggy-hint">Klicken zum Entnehmen</span>}
+    {card.type === 'chest' && <span className="piggy-hint">Klicken zum Öffnen</span>}
     {tool && <div className="equipped-tool" data-tool-id={tool.id} title={`${CARD_TYPES[tool.type].name}${weaponBonus ? ` · +${weaponBonus} Schaden` : ''} · zum Ablegen ziehen`}><CardArt type={tool.type} /><span>{weaponBonus ? `+${weaponBonus}` : '×2'}</span></div>}
     {locked && <span className="lock-label"><Hand size={11} /> Wird bewegt</span>}
   </div>;
@@ -136,6 +140,7 @@ function Help({ onClose }) {
     <div className="help-step"><Coins /><h3>Neues entdecken</h3><p>Ziehe Goldkarten oder ein gefülltes Sparschwein zum gewünschten Paket rechts. Beim Schwein wird der offene Preis aus dem Guthaben bezahlt. Klickt das gekaufte Paket an – jeder Klick entdeckt eine Karte.</p></div>
     <div className="help-step"><Hand /><h3>Arbeit beginnt von selbst</h3><p>Lege einen Menschen auf einen Baum, Fels oder Beerenbusch. Mehrere Quellen im Stapel werden nacheinander abgearbeitet. Zutaten und Mensch ergeben neue Dinge.</p></div>
     <div className="help-step"><Heart /><h3>Aufeinander aufpassen</h3><p>Eine Beere heilt ein Leben. Ratten brauchen zwei Treffer. Bei null Leben bleibt eine Leiche zurück.</p></div>
+    <div className="help-step"><PackageOpen /><h3>Vorräte aufbewahren</h3><p>10 Holz ergeben eine Kiste. Anklicken öffnet ihr Inventar. Ressourcen und Nahrung hineinziehen; der Inhalt wird nach Sorte mit Mengen angezeigt und lässt sich wieder entnehmen.</p></div>
     <div className="help-step"><Users /><h3>Anderen etwas schenken</h3><p>Baue ein Rathaus aus 100 Steinen mit deinem Menschen. Ein Klick auf die Rathauskarte öffnet die Mitspieler und ihre Materialien. Ziehe Karten auf einen Namen, um sie zu verschenken. Sie kommen beim nächsten Abgleich nach etwa 60 Sekunden an.</p></div>
   </div><div className="help-tip"><Sprout size={19} /><p>Boden + Beere wächst in einer Stunde zum Erdbeerfeld – auch offline. Es wartet höchstens eine Ernte mit zehn Beeren.</p></div><button className="primary-button" onClick={onClose}>Alles klar, los geht’s <Check size={17} /></button></Dialog>;
 }
@@ -155,6 +160,7 @@ export default function App() {
   const [drag, setDrag] = useState(null);
   const [highlight, setHighlight] = useState(null);
   const [friendsOpen, setFriendsOpen] = useState(false);
+  const [openChestId, setOpenChestId] = useState(null);
   const [expandedRecipe, setExpandedRecipe] = useState(null);
   const dragRef = useRef(null);
   const nextGestureId = useRef(0);
@@ -197,9 +203,12 @@ export default function App() {
     return { byId, stacks, indices, motions, jobs, sourceJobs, combats };
   }, [cards, world?.jobs, world?.combats]);
   const hasTownHall = cards.some((card) => card.type === 'town_hall');
+  const openChest = cards.find((card) => card.id === openChestId && card.type === 'chest');
+  const closeChest = useCallback(() => setOpenChestId(null), []);
+  useEffect(() => { if (settingsOpen) setOpenChestId(null); }, [settingsOpen]);
   useEffect(() => { if (!hasTownHall) setFriendsOpen(false); }, [hasTownHall]);
   const gold = cards.filter((c) => c.type === 'gold').length;
-  const storedGold = cards.filter((c) => c.type === 'piggyBank').reduce((sum, c) => sum + (c.gold || 0), 0);
+  const storedGold = cards.reduce((sum, card) => sum + (card.type === 'piggyBank' ? card.gold || 0 : card.type === 'chest' ? (card.contents || []).filter((item) => item.type === 'gold').length : 0), 0);
   const humanCount = cards.filter((c) => c.type === 'human').length;
   const inspect = typeof dialog === 'object' && dialog ? cards.find((c) => c.id === dialog.id) || dialog : null;
   const execute = useCallback(async (command, success) => {
@@ -226,6 +235,7 @@ export default function App() {
     catch (err) { game.notify(err.message, 'error'); throw err; }
   }, [game.command, game.notify, game.worldRef, zoom]);
   const activateCard = useCallback((card) => {
+    if (card.type === 'chest') setOpenChestId(card.id);
     if (card.type === 'town_hall') setFriendsOpen(true);
     if (card.type === 'piggyBank') execute({ type: 'withdraw', cardId: card.id }).catch(() => {});
     if (card.type === 'pack') execute({ type: 'open-pack', cardId: card.id }).catch(() => {});
@@ -268,6 +278,18 @@ export default function App() {
     event.currentTarget.setPointerCapture?.(event.pointerId);
   }, [connected, cards, world, game.offset, point, zoom]);
 
+  const startInventoryDrag = useCallback((event, chest, item) => {
+    if (event.button !== 0 || !connected) return;
+    event.preventDefault(); event.stopPropagation();
+    const origin = point(event);
+    const x = origin.x - W / 2, y = origin.y - H / 2;
+    dragRef.current = { gestureId: ++nextGestureId.current, pointerId: event.pointerId, cardId: item.id, card: item, fromChestId: chest.id, ids: [], itemOffsets: {}, x, y, originX: x, originY: y, start: origin, clientX: event.clientX, clientY: event.clientY, moved: false };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }, [connected, point]);
+  const retrieveItem = useCallback((cardId, itemId, allOfType) => {
+    execute({ type: 'retrieve', cardId, itemId, allOfType }, 'Aus der Kiste genommen.').catch(() => {});
+  }, [execute]);
+
   useEffect(() => {
     let frame = null, latestPointer = null;
     const updatePointer = (event) => {
@@ -284,8 +306,11 @@ export default function App() {
       value.x = Math.max(24, Math.min(CONFIG.worldWidth - W - 24, value.originX + next.x - value.start.x));
       value.y = Math.max(24, Math.min(CONFIG.worldHeight - H - 24, value.originY + next.y - value.start.y));
       setDrag({ ...value });
-      const target = document.elementsFromPoint(event.clientX, event.clientY).map((element) => element.closest('[data-drop-zone]')).find(Boolean);
-      setHighlight(target?.dataset.dropZone === 'gift' ? `gift:${target.dataset.playerId}` : target?.dataset.dropZone === 'shop' ? `shop:${target.dataset.packId}` : target?.dataset.dropZone || null);
+      const elements = document.elementsFromPoint(event.clientX, event.clientY);
+      const target = elements.map((element) => element.closest('[data-drop-zone]')).find(Boolean);
+      const targetId = elements.map((element) => element.closest('[data-card-id]')?.dataset.cardId).find((id) => id && !value.ids.includes(id));
+      const targetCard = game.worldRef.current?.cards.find((card) => card.id === targetId);
+      setHighlight(target?.dataset.dropZone === 'chest' ? `chest:${target.dataset.chestId}` : target?.dataset.dropZone === 'gift' ? `gift:${target.dataset.playerId}` : target?.dataset.dropZone === 'shop' ? `shop:${target.dataset.packId}` : target?.dataset.dropZone || (targetCard?.type === 'chest' ? `chest:${targetId}` : null));
     };
     const move = (event) => {
       latestPointer = { clientX: event.clientX, clientY: event.clientY, pointerId: event.pointerId };
@@ -308,7 +333,7 @@ export default function App() {
       const clearGesture = () => setDrag((current) => current?.gestureId === value.gestureId ? null : current);
       if (!value.moved) {
         clearGesture();
-        activateCard(value.card);
+        if (!value.fromChestId) activateCard(value.card);
         return;
       }
       suppressClick.current = Date.now();
@@ -323,7 +348,15 @@ export default function App() {
         targetId = overlappingTarget(rect, targets, value.ids);
       }
       try {
-        if (zone === 'gift') {
+        if (value.fromChestId) {
+          // Releasing over the inventory or surrounding UI leaves the item stored.
+          if (!zone && elements.some((element) => element.closest('.viewport'))) await execute({ type: 'retrieve', cardId: value.fromChestId, itemId: value.cardId, x: value.x, y: value.y }, 'Aus der Kiste genommen.');
+        }
+        else if (zone === 'chest') {
+          if (value.harvest) { game.notify('Ernte die Beeren zuerst, bevor du sie einlagerst.', 'error'); return; }
+          await execute({ type: 'store', cardId: zoneElement.dataset.chestId, itemId: value.cardId, split: value.split, takeAbove: value.takeAbove }, 'In der Kiste eingelagert.');
+        }
+        else if (zone === 'gift') {
           if (!game.worldRef.current?.cards.some((card) => card.type === 'town_hall')) { game.notify('Du brauchst ein Rathaus, um Geschenke zu verschicken.', 'error'); return; }
           if (value.harvest) { game.notify('Ernte die Beeren zuerst, bevor du sie verschenkst.', 'error'); return; }
           try {
@@ -375,7 +408,7 @@ export default function App() {
             const job = board.jobs.get(card.id) || (index === stack.length - 1 ? board.sourceJobs.get(card.stackId) : null);
             const combat = board.combats.get(card.id);
             const tool = card.toolId !== drag?.cardId ? board.byId.get(card.toolId) : null;
-            return <GameCard key={card.id} card={card} world={world} job={job} combat={combat} own={card.ownerId === player?.id} index={index} count={stack.length} motionAnchor={board.motions.get(card.stackId)} preview={previewFor(card)} dragging={Boolean(drag?.ids.includes(card.id))} offset={game.offset.current} onPointerDown={startDrag} onInspect={showInspect} onActivate={activateCard} tool={tool} />;
+            return <GameCard key={card.id} card={card} world={world} job={job} combat={combat} own={card.ownerId === player?.id} index={index} count={stack.length} motionAnchor={board.motions.get(card.stackId)} preview={previewFor(card)} dragging={Boolean(drag?.ids.includes(card.id))} offset={game.offset.current} onPointerDown={startDrag} onInspect={showInspect} onActivate={activateCard} tool={tool} storageTarget={highlight === `chest:${card.id}`} />;
           })}
         </div></div></div>
         {player && cards.length <= 10 && <div className="empty-note"><span className="note-number">01</span><p>Ein Anfang voller Möglichkeiten.<br /><strong>Ziehe Gold zum Basicpaket – einzeln oder als Stapel.</strong></p><ArrowUpRight size={21} /></div>}
@@ -388,6 +421,8 @@ export default function App() {
         <footer className="sidebar-footer"><span><Leaf size={13} /> Zusammen geht mehr.</span><small>STACKFRIENDS · V1</small></footer>
       </aside>
     </main>
+    {openChest && !settingsOpen && <ChestPanel chest={openChest} definitions={CARD_TYPES} highlighted={highlight === `chest:${openChest.id}`} enabled={connected} onClose={closeChest} onRetrieve={retrieveItem} onDragItem={startInventoryDrag} />}
+    {drag && (drag.fromChestId || highlight?.startsWith('chest:')) && <div className="gift-drag-ghost chest-drag-ghost" style={{ left: Math.max(8, Math.min(drag.clientX + 14, window.innerWidth - 220)), top: Math.max(8, Math.min(drag.clientY + 14, window.innerHeight - 70)) }} aria-hidden="true"><span className="gift-drag-art"><CardArt type={drag.card.type} /></span><span><strong>{drag.ids.length > 1 ? `${drag.ids.length} Karten` : (CARD_TYPES[drag.card.type]?.name || 'Karte')}</strong><small>{drag.fromChestId ? 'Auf dem Spielfeld ablegen' : 'Loslassen zum Einlagern'}</small></span></div>}
     {drag && highlight?.startsWith('gift:') && <div className="gift-drag-ghost" style={{ left: Math.max(8, Math.min(drag.clientX + 14, window.innerWidth - 220)), top: Math.max(8, Math.min(drag.clientY + 14, window.innerHeight - 70)) }} aria-hidden="true"><span className="gift-drag-art"><CardArt type={drag.card.type} /></span><span><strong>{drag.ids.length > 1 ? `${drag.ids.length} Karten verschenken` : (drag.card.name || drag.card.packName || CARD_TYPES[drag.card.type]?.name)}</strong><small>Loslassen zum Verschenken</small></span></div>}
     {game.status === 'offline' && <div className="connection-banner"><WifiOff size={15} /> Du bist offline. Dein Spiel läuft lokal weiter; Änderungen werden später übertragen.</div>}
     {game.status === 'conflict' && <div className="connection-banner" role="alert" style={{ whiteSpace: 'normal' }}><WifiOff size={15} /><span>{game.error} Deine lokale Sicherung bleibt erhalten.</span><button className="secondary-button" onClick={() => game.resolveConflict().catch(() => {})}>Gespeicherten Stand laden</button></div>}

@@ -38,6 +38,10 @@ Beim Wiedereinloggen oder Wiederöffnen werden angefangene Arbeiten nachgeholt: 
 
 Der Browser bewahrt unbestätigte Änderungen als lokale Sicherung auf. Retrys verwenden dieselbe Speicher-ID. Eine verspätete Bestätigung lässt spätere Aktionen erhalten. Vor Geschenken oder globalen Editoränderungen wird das Journal gesichert; Versionsprüfungen verhindern das Überschreiben neuerer Spielstände. Ein Konflikt wird sichtbar gemeldet und die lokale Sicherung bleibt erhalten.
 
+## Kisten
+
+10 Holz ergeben nach 10 Sekunden eine Kiste, ohne Menschen. Per Klick auf die Kistenkarte öffnet sich ihr Inventar. Ressourcen und Nahrung einzeln oder als Stapel auf die Kiste oder in das offene Fenster ziehen. Der Inhalt erscheint nach Kartentyp mit Mengen. Einzelne Karten lassen sich wieder auf das Spielfeld ziehen; die Schaltflächen entnehmen eine Karte oder alle desselben Typs. Der Inhalt wird zusammen mit der Welt gespeichert und in der Materialübersicht mitgezählt. Vor dem Verkaufen oder Verschenken muss die Kiste leer sein.
+
 ## Gemeinsame Spielregeln
 
 Beide Apps beziehen `@stackfriends/shared` als öffentliches HTTPS-Archiv aus dem Shared-Repository. Dieselbe vollständige Commit-SHA mit 40 Zeichen legt ihre gemeinsame Regelversion fest; `package.json` und `package-lock.json` werden mitcommittet. Die Lockdatei enthält auch die Integritätsprüfung des Archivs.

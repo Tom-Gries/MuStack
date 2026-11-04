@@ -291,6 +291,20 @@ function Tool({ pickaxe = false }) {
   );
 }
 
+function Chest() {
+  return <>
+    <Shadow rx={43} />
+    <path d="m23 43 56-9 21 14-55 11Z" fill={C.lightGold} />
+    <path d="m23 43 22 16v28L23 72Z" fill={C.bark} />
+    <path d="m45 59 55-11v29L45 87Z" fill={C.wood} />
+    <path d="m25 53 19 13m-19-3 19 13m3-7 51-10M47 78l51-10M32 42l21 15m27-20 12 9" fill="none" stroke={C.bark} strokeWidth="1.4" />
+    <path d="m32 42 8-1 21 15v28l-8 1V57Zm44-7 7 4 9 7v32l-7 1V47Z" fill={C.darkGreen} />
+    <path d="m68 55 10-2v13l-10 2Z" fill={C.gold} />
+    <path d="m72 58 2-.4v6l-2 .4Z" fill={C.ink} stroke="none" />
+    <path d="m25 45 17 12m6 5 14-3" fill="none" stroke={C.cream} strokeWidth="1.4" opacity=".65" />
+  </>;
+}
+
 const artwork = {
   human: <Person />,
   corpse: <Person corpse />,
@@ -303,6 +317,7 @@ const artwork = {
   pack: <Pack />,
   piggyBank: <PiggyBank />,
   warehouse: <Warehouse />,
+  chest: <Chest />,
   axe: <Tool />,
   pickaxe: <Tool pickaxe />,
   gold: (
